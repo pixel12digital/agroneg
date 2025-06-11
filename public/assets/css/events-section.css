@@ -1,0 +1,145 @@
+.events-section {
+    padding: 60px 0;
+    background-color: #f8f9fa;
+}
+
+.events-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.events-header {
+    margin-bottom: 40px;
+}
+
+.events-tagline {
+    font-size: 18px;
+    color: #1A9B60;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.events-title {
+    font-size: 42px;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.events-description {
+    font-size: 18px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.event-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.event-category {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.event-category:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.event-circle {
+    width: 60px;
+    height: 60px;
+    background-color: #E7F8F1;
+    border-radius: 50%;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.event-category-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.add-event-btn {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn-add-event {
+    background-color: #1A9B60;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-add-event:hover {
+    background-color: #148350;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .events-tagline {
+        font-size: 16px;
+    }
+    
+    .events-title {
+        font-size: 32px;
+    }
+    
+    .events-description {
+        font-size: 16px;
+    }
+    
+    .event-category {
+        padding: 15px;
+    }
+    
+    .event-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .event-category-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .events-section {
+        padding: 40px 0;
+    }
+    
+    .events-title {
+        font-size: 28px;
+    }
+    
+    .event-circle {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .event-category-title {
+        font-size: 16px;
+    }
+} 

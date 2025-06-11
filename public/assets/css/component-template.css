@@ -1,0 +1,118 @@
+/* 
+ * TEMPLATE DE COMPONENTE - AGRONEG
+ * --------------------------------
+ * Modelo para organizar CSS com separação clara entre
+ * estilos mobile e desktop
+ */
+
+/*=============================
+  ESTILOS BASE (COMPARTILHADOS)
+  Estilos que se aplicam a TODOS os dispositivos
+=============================*/
+.componente {
+  /* Estilos básicos que funcionam em todos os tamanhos de tela */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/*=============================
+  ESTILOS MOBILE (PADRÃO)
+  Mobile-first: todos os estilos principais
+  são definidos para mobile primeiro
+=============================*/
+.componente {
+  background-color: #f2f2f2;
+  padding: 1rem;
+}
+
+.componente-titulo {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: var(--green-900);
+}
+
+.componente-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.componente-item {
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  padding: 0.75rem;
+  background: white;
+}
+
+/* Controles específicos para mobile pequeno */
+@media (max-width: 576px) {
+  .componente {
+    padding: 0.75rem;
+  }
+  
+  .componente-titulo {
+    font-size: 1.25rem;
+  }
+}
+
+/* Controles específicos para tablet */
+@media (min-width: 577px) and (max-width: 991px) {
+  .componente {
+    padding: 1.25rem;
+  }
+  
+  .componente-titulo {
+    font-size: 1.75rem;
+  }
+  
+  .componente-conteudo {
+    /* Possíveis ajustes para tablets */
+  }
+}
+
+/*=============================
+  ESTILOS DESKTOP
+  Estes estilos só se aplicam a telas grandes
+  e NÃO INTERFEREM com o layout mobile
+=============================*/
+@media (min-width: 992px) {
+  .componente {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+  }
+  
+  .componente-titulo {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .componente-conteudo {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .componente-item {
+    flex: 0 0 calc(50% - 1rem);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .componente-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Desktop grande */
+@media (min-width: 1200px) {
+  .componente {
+    padding: 2.5rem;
+  }
+  
+  .componente-item {
+    flex: 0 0 calc(33.333% - 1rem);
+  }
+} 

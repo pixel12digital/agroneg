@@ -1,0 +1,283 @@
+/* 
+ * ESTILOS GLOBAIS - AGRONEG
+ * ------------------------------
+ * Arquivo base com reset CSS e variáveis globais
+ */
+
+:root {
+  /* Cores principais */
+  --green-900: #0d3f29;   /* fundo principal verde escuro */
+  --green-800: #0f442d;   /* verde escuro secundário */
+  --green-700: #125e3d;   /* verde médio */
+  --green-600: #147a4e;   /* verde médio claro */
+  --green-500: #1a9d64;   /* verde principal */
+  --green-400: #24be79;   /* verde claro */
+  
+  --orange-600: #e45d25;  /* laranja escuro */
+  --orange-500: #ea6d36;  /* laranja principal (sublinhados/ícones) */
+  --orange-400: #f6a742;  /* laranja claro (botões) */
+  --orange-300: #ffc168;  /* laranja mais claro */
+  
+  /* Cores neutras */
+  --white: #ffffff;
+  --gray-100: #f5f5f5;    /* fundo claro */
+  --gray-200: #e9e9e9;    /* bordas claras */
+  --gray-300: #d1d1d1;    /* bordas médias */
+  --gray-400: #a0a0a0;    /* textos desabilitados */
+  --gray-500: #717171;    /* textos secundários */
+  --gray-600: #505050;    /* textos principais */
+  --gray-700: #3d3d3d;    /* títulos */
+  --gray-800: #292929;    /* textos em destaque */
+  --gray-900: #1a1a1a;    /* textos principais em fundo escuro */
+  
+  /* Fontes e tamanhos */
+  --font-primary: 'Poppins', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+  
+  /* Breakpoints para responsividade */
+  --breakpoint-sm: 576px;    /* Smartphones */
+  --breakpoint-md: 768px;    /* Tablets */
+  --breakpoint-lg: 992px;    /* Desktops pequenos */
+  --breakpoint-xl: 1200px;   /* Desktops grandes */
+  
+  /* Espaçamentos padrão */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-xxl: 3rem;      /* 48px */
+}
+
+/* Reset CSS básico */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--gray-700);
+  background-color: var(--white);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+p {
+  margin-top: 0;
+}
+
+a {
+  color: var(--green-500);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--orange-500);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Container padrão */
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Estrutura de grid básica */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+/* Estilos específicos para MOBILE (padrão) */
+/* Para elementos que terão estilos diferentes no desktop, 
+   use as media queries abaixo */
+
+/* MEDIA QUERIES */
+/* TABLET - Média resolução */
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+/* DESKTOP - pequeno */
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+/* DESKTOP - grande */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+/* Base styles for the site */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f8f8f8;
+    color: #222;
+}
+
+.main-content {    min-height: 70vh;    padding: 0;    margin: 0;} 
+
+/* Adicionar estilos para a seção de features */
+.features-section {
+    padding: 80px 0;
+    background-color: #f8f9fa;
+}
+
+.features-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.feature-card {
+    flex: 1;
+    min-width: 300px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-icon img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: invert(50%) sepia(43%) saturate(2175%) hue-rotate(346deg) brightness(99%) contrast(88%);
+}
+
+.feature-title {
+    color: #2c3e50;
+    font-size: 20px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.feature-text {
+    color: #6c757d;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.feature-link {
+    display: inline-block;
+    color: #e67e22;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.feature-link:hover {
+    color: #d35400;
+}
+
+/* Responsividade para telas pequenas */
+@media (max-width: 768px) {
+    .features-wrapper {
+        flex-direction: column;
+    }
+    
+    .feature-card {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .features-section {
+        padding: 50px 20px;
+    }
+} 
+
+.foto-thumb {
+  width: 84px;
+  height: 84px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px #0001;
+  cursor: pointer;
+  position: relative;
+}
+
+.foto-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #f5f5f5;
+  border-radius: 0;
+  transition: transform 0.2s;
+  display: block;
+}
+
+.modal-galeria-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  color: #fff;
+  font-size: 2.5em;
+  cursor: pointer;
+  z-index: 10001;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.modal-galeria-close:hover {
+  background: rgba(0,0,0,0.8);
+}
+@media (max-width: 600px) {
+  .modal-galeria-close {
+    top: 8px;
+    right: 8px;
+    font-size: 2em;
+    width: 38px;
+    height: 38px;
+  }
+} 

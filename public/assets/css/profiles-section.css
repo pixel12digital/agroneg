@@ -1,0 +1,242 @@
+/* 
+ * ESTILOS DA SEÇÃO DE PERFIS - AGRONEG
+ * --------------------------------
+ * Estilos para a seção que mostra os diferentes tipos de perfis
+ * e seus benefícios específicos
+ */
+
+.profiles-section {
+    padding: 80px 0;
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.profiles-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.profiles-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 50px;
+}
+
+.profiles-intro-text {
+    font-size: 1.1rem;
+    color: #4a5568;
+    line-height: 1.6;
+}
+
+.profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.profile-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto 15px;
+}
+
+.profile-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.profile-icon-text {
+    font-size: 0.8rem;
+    color: var(--orange-400);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.profile-icon svg,
+.profile-icon img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    /* Filtro para tornar os ícones laranja */
+    filter: invert(52%) sepia(36%) saturate(2476%) hue-rotate(346deg) brightness(101%) contrast(91%);
+}
+
+.profile-title {
+    color: var(--green-700);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.profile-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.profile-benefit-item {
+    margin-bottom: 12px;
+    padding-left: 30px;
+    position: relative;
+    color: #4a5568;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.profile-benefit-item::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--green-600);
+    font-weight: bold;
+}
+
+.profiles-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.profiles-footer-text {
+    font-size: 1rem;
+    color: #4a5568;
+    margin-bottom: 30px;
+}
+
+.search-link {
+    color: var(--orange-400);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.search-link:hover {
+    color: var(--orange-500);
+    text-decoration: underline;
+}
+
+.contact-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--green-600);
+    color: white;
+    padding: 14px 30px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.contact-button:hover {
+    background-color: var(--green-700);
+    transform: translateY(-2px);
+}
+
+.contact-button i {
+    margin-right: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .profiles-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profiles-section {
+        padding: 60px 0;
+    }
+    
+    .profiles-intro {
+        margin-bottom: 40px;
+    }
+    
+    .profiles-intro-text {
+        font-size: 1rem;
+    }
+    
+    .profiles-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .profile-card {
+        padding: 25px;
+    }
+    
+    .profile-title {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .profiles-section {
+        padding: 40px 0;
+    }
+    
+    .profiles-intro {
+        margin-bottom: 30px;
+    }
+    
+    .profile-card {
+        padding: 20px;
+    }
+    
+    .profile-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .profile-icon-text {
+        font-size: 0.75rem;
+    }
+    
+    .profile-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .profile-benefit-item {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .contact-button {
+        padding: 12px 25px;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+} 

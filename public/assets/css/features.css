@@ -1,0 +1,136 @@
+/* Estilos para a seção de features */
+.features-section {
+    padding: 80px 0;
+    background-color: #f8f9fa;
+}
+
+.features-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+.feature-card {
+    flex: 1;
+    min-width: 300px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-icon img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: invert(52%) sepia(36%) saturate(2476%) hue-rotate(346deg) brightness(101%) contrast(91%);
+}
+
+.feature-title {
+    color: var(--green-700);
+    font-size: 20px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.feature-text {
+    color: #4a5568;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.feature-link {
+    display: inline-block;
+    color: var(--orange-400);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.feature-link:hover {
+    color: var(--orange-500);
+    text-decoration: underline;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .features-wrapper {
+        gap: 20px;
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .features-wrapper {
+        flex-direction: column;
+        align-items: center;
+        padding: 0 20px;
+    }
+    
+    .feature-card {
+        width: 100%;
+        max-width: 450px;
+        margin-bottom: 25px;
+        padding: 25px;
+    }
+    
+    .features-section {
+        padding: 40px 0;
+    }
+}
+
+/* Ajustes específicos para mobile pequeno */
+@media (max-width: 576px) {
+    .features-wrapper {
+        padding: 0;
+        justify-content: center;
+    }
+    
+    .feature-card {
+        min-width: unset;
+        width: 92%;
+        max-width: 380px;
+        padding: 25px 20px;
+        margin-left: auto;
+        margin-right: auto;
+        transform: translateX(-4px);
+    }
+    
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 15px;
+        margin-left: -2px;
+    }
+    
+    .feature-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+    
+    .feature-text {
+        font-size: 15px;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+} 

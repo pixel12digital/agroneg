@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /index.php
+Allow: /eventos.php
+Allow: /produtores.php
+Allow: /criadores.php
+Allow: /veterinarios.php
+Allow: /cooperativas.php
+Allow: /lojas-agropet.php
+Allow: /municipio.php
+Allow: /parceiro.php
+
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /api/
+Disallow: /config/
+Disallow: /sql/
+Disallow: /*.sql$
+Disallow: /*.php$
+Disallow: /*.log$
+Disallow: /*.txt$
+Disallow: /*.json$
+Disallow: /*.xml$
+
+Sitemap: https://seudominio.com.br/sitemap.xml 

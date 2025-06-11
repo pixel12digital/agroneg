@@ -1,0 +1,99 @@
+/* 
+ * ESTILOS DO BANNER - AGRONEG
+ * --------------------------------
+ * Estilos para o banner principal do site
+ * Organizado em mobile-first com separação clara para desktop
+ */
+
+/*=============================
+  ESTILOS MOBILE (PADRÃO)
+  Estes estilos se aplicam para todos os dispositivos
+  e são sobrescritos pelos estilos desktop quando necessário
+=============================*/
+.banner-section {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+.banner-section .container {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.banner-wrapper {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+}
+
+.banner-img {
+    width: 100vw !important;
+    height: auto !important;
+    display: block;
+    max-height: 500px; /* Altura padrão para mobile */
+    object-fit: cover;
+    margin: 0;
+    padding: 0;
+}
+
+/* Controles específicos para mobile pequeno */
+@media (max-width: 576px) {
+    .banner-img {
+        max-height: 290px; /* Altura ligeiramente menor */
+        min-height: 240px;
+        object-position: center 30%;
+        filter: brightness(0.8);
+    }
+    
+    .banner-wrapper {
+        margin-bottom: 45px; /* Espaço ajustado para a instrução */
+        position: relative;
+    }
+    
+    .banner-wrapper::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            to bottom, 
+            rgba(0,0,0,0.6) 0%, 
+            rgba(0,0,0,0.3) 30%, 
+            rgba(0,0,0,0.2) 60%, 
+            rgba(0,0,0,0.4) 100%
+        );
+        pointer-events: none;
+    }
+}
+
+/* Controles específicos para tablet */
+@media (min-width: 577px) and (max-width: 991px) {
+    .banner-img {
+        max-height: 450px;
+        min-height: 60vh; /* Garantir altura proporcional à viewport em tablets */
+    }
+}
+
+/*=============================
+  ESTILOS DESKTOP
+  Estes estilos só se aplicam a telas grandes
+  e não afetam o layout mobile
+=============================*/
+@media (min-width: 992px) {    /* Redefinições específicas para desktop */    .banner-section {        margin: 0;        padding: 0;    }        .banner-section .container {        max-width: 100%;        padding: 0;        margin: 0;    }        .banner-wrapper {        margin: 0;        padding: 0;        width: 100vw;        position: relative;        left: 50%;        right: 50%;        margin-left: -50vw;        margin-right: -50vw;    }        .banner-img {        max-height: 600px;        width: 100vw !important;        object-position: center;        min-height: auto; /* Remover min-height no desktop */    }}
+
+/* DESKTOP grande */
+@media (min-width: 1200px) {
+    .banner-img {
+        max-height: 650px;
+    }
+} 

@@ -1,0 +1,350 @@
+/* 
+ * ESTILOS DO HEADER - AGRONEG
+ * --------------------------------
+ * Estilos para o cabeçalho do site
+ * Organizado com separação clara entre mobile e desktop
+ */
+
+:root {
+  --green-900: #0d3f29;   /* fundo principal (igual à print)   */
+  --green-800: #0f442d;   /* scroll-area mobile                */
+  --orange-500: #ea6d36;  /* sublinhado títulos + ícones       */
+  --orange-400: #f6a742;  /* cor do botão "Contato"    */
+  --white: #fff;
+}
+
+/*=============================
+  ESTILOS BASE (COMPARTILHADOS)
+  Estes estilos se aplicam a todos os tamanhos de tela
+=============================*/
+#site-header {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+#site-header .container {
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+}
+
+#site-header .logo img {
+  display: block;
+}
+
+/*=============================
+  ESTILOS MOBILE (PADRÃO)
+  Mobile-first: estes estilos se aplicam para todos
+  os dispositivos por padrão
+=============================*/
+/* Mobile Header Structure */
+#site-header {
+  background: var(--white);
+  padding: 5px 0;
+}
+
+#site-header .container {
+  height: 60px;
+  padding: 0 1rem;
+  justify-content: space-between;
+  position: relative;
+}
+
+#site-header .logo {
+  display: flex;
+  align-items: center;
+}
+
+#site-header .logo img {
+  height: 40px;
+  width: auto;
+}
+
+/* Elementos de Desktop escondidos no mobile */
+#site-header .desktop-nav, 
+#site-header .contact-btn-wrapper {
+  display: none;
+}
+
+/* Mobile Menu Toggle */
+#site-header .mobile-menu-toggle {
+  display: block;
+  z-index: 1200;
+  position: relative;
+}
+
+#site-header #menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.75rem;
+  transition: color 0.2s;
+  color: var(--green-900);
+}
+
+#site-header .menu-icon {
+  color: var(--green-900);
+  font-size: 1.75rem;
+  display: inline-block;
+}
+
+#site-header #menu-toggle:hover .menu-icon {
+  color: var(--orange-400);
+}
+
+/* Mobile Menu */
+#site-header .mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--green-900);
+  z-index: 1200; /* Between header and close button */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateX(-100%);
+  opacity: 0;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  padding-top: 60px;
+}
+
+#site-header .mobile-menu.open {
+  transform: translateX(0);
+  opacity: 1;
+  display: flex;
+}
+
+#site-header .mobile-menu-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  position: relative;
+}
+
+#site-header #close-menu {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  padding: 0;
+  z-index: 1300; /* Increased z-index to be higher than the menu toggle */
+}
+
+#site-header .close-icon {
+  color: var(--white);
+  font-size: 2rem;
+  display: inline-block;
+  line-height: 0.8;
+}
+
+#site-header #close-menu:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#site-header .mobile-nav {
+  flex: 1;
+}
+
+#site-header .mobile-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#site-header .mobile-nav li {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#site-header .mobile-nav a {
+  color: var(--white);
+  text-decoration: none;
+  padding: 1.2rem 1.5rem;
+  display: block;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+#site-header .mobile-nav a:hover,
+#site-header .mobile-nav a:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile pequeno (ajustes específicos) */
+@media (max-width: 576px) {
+  #site-header .container {
+    height: 55px;
+    padding: 0 0.75rem;
+  }
+  
+  #site-header .logo img {
+    height: 35px;
+  }
+  
+  #site-header #menu-toggle {
+    font-size: 1.5rem;
+  }
+}
+
+/*=============================
+  ESTILOS DESKTOP
+  Estes estilos só se aplicam a telas maiores
+  e não afetam o layout mobile
+=============================*/
+@media (min-width: 993px) {
+  #site-header {
+    background: var(--white);
+    padding: 10px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+  }
+  
+  #site-header.shrink {
+    padding: 5px 0;
+  }
+  
+  #site-header.shrink .container {
+    height: 55px;
+  }
+  
+  #site-header.shrink .logo img {
+    height: 38px;
+  }
+
+  #site-header .container {
+    max-width: 1200px;
+    padding: 0 1.5rem;
+    height: 65px;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+  
+  #site-header .logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  #site-header .logo img {
+    height: 44px;
+    width: auto;
+    transition: transform 0.3s ease;
+  }
+  
+  #site-header .logo img:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Desktop Navigation */
+  #site-header .desktop-nav {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+  }
+  
+  #site-header .desktop-nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.8rem;
+    align-items: center;
+    height: 100%;
+  }
+  
+  #site-header .desktop-nav a {
+    color: var(--green-900);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+    padding: 0.5rem 0;
+    position: relative;
+  }
+  
+  #site-header .desktop-nav a:hover {
+    color: var(--orange-500);
+  }
+  
+  #site-header .desktop-nav a:hover:after,
+  #site-header .desktop-nav a.active:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: var(--orange-500);
+    bottom: -3px;
+    left: 0;
+    transform: scaleX(1);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+  }
+  
+  #site-header .desktop-nav a:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: var(--orange-500);
+    bottom: -3px;
+    left: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+  }
+  
+  #site-header .desktop-nav a.active {
+    color: var(--orange-500);
+    font-weight: 600;
+  }
+  
+  #site-header .contact-btn-wrapper {
+    margin-left: 1.5rem;
+    display: block;
+  }
+  
+  #site-header .contact-btn {
+    background: var(--orange-400);
+    color: var(--white) !important;
+    padding: 0.6rem 1.2rem !important;
+    border-radius: 5px;
+    font-weight: 600 !important;
+    font-size: 0.85rem;
+    transition: all 0.3s ease !important;
+    white-space: nowrap;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    display: inline-block;
+    letter-spacing: 0.2px;
+  }
+  
+  #site-header .contact-btn:hover {
+    background: var(--orange-500);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(234, 109, 54, 0.25);
+  }
+  
+  /* Mobile elements escondidos no desktop */
+  #site-header .mobile-menu-toggle,
+  #site-header #menu-overlay {
+    display: none;
+  }
+  
+  #site-header .mobile-menu {
+    display: none;
+  }
+} 

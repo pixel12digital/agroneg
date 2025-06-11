@@ -1,0 +1,204 @@
+/* 
+ * ESTILOS DA SEÇÃO SOBRE - AGRONEG
+ * --------------------------------
+ * Estilos para a seção "A Melhor Experiência"
+ * Organizado em mobile-first com separação clara para desktop
+ */
+
+/*=============================
+  ESTILOS BASE (COMPARTILHADOS)
+  Estilos que se aplicam a TODOS os dispositivos
+=============================*/
+.about-section {
+    padding: 80px 0;
+    background-color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.about-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--green-700);
+    position: relative;
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+.about-subtitle {
+    font-size: 1.2rem;
+    color: var(--green-600);
+    margin-bottom: 30px;
+    font-weight: 400;
+}
+
+.about-text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #4a5568;
+}
+
+.about-text p {
+    margin-bottom: 20px;
+}
+
+.about-highlight {
+    color: var(--green-700);
+    font-weight: 600;
+}
+
+/* Estilos da imagem */
+.about-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.about-image:hover img {
+    transform: translateY(-5px);
+}
+
+/* Decoração adicional */
+.about-section::before {
+    content: '';
+    position: absolute;
+    right: -100px;
+    top: -100px;
+    width: 300px;
+    height: 300px;
+    background-color: rgba(13, 63, 41, 0.05);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.about-section::after {
+    content: '';
+    position: absolute;
+    left: -80px;
+    bottom: -80px;
+    width: 200px;
+    height: 200px;
+    background-color: rgba(230, 126, 34, 0.05);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+/*=============================
+  ESTILOS MOBILE (PADRÃO)
+  Configurações específicas para mobile
+=============================*/
+@media (max-width: 768px) {
+    .about-section {
+        padding: 60px 0;
+    }
+    
+    .about-container {
+        gap: 30px;
+    }
+    
+    .about-title {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    
+    .about-subtitle {
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .about-content {
+        order: 1;
+    }
+    
+    .about-image {
+        display: none; /* Ocultar imagem na versão mobile */
+    }
+    
+    .about-text {
+        font-size: 0.95rem;
+        text-align: center;
+        padding: 0 15px;
+    }
+}
+
+/*=============================
+  ESTILOS DESKTOP
+  Layout diferente para desktop
+=============================*/
+@media (min-width: 769px) {
+    .about-container {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .about-content {
+        flex: 1;
+        padding-right: 40px;
+    }
+    
+    .about-image {
+        flex: 1;
+        display: block; /* Garantir que a imagem seja mostrada no desktop */
+    }
+    
+    .about-title::after {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background-color: var(--orange-400);
+        border-radius: 2px;
+    }
+    
+    .about-subtitle {
+        max-width: 80%;
+    }
+    
+    .about-text {
+        max-width: 90%;
+    }
+}
+
+/* Melhorias para tablet */
+@media (min-width: 769px) and (max-width: 991px) {
+    .about-container {
+        gap: 30px;
+    }
+    
+    .about-content {
+        padding-right: 20px;
+    }
+}
+
+/* Estilos para telas grandes */
+@media (min-width: 1200px) {
+    .about-container {
+        gap: 60px;
+    }
+    
+    .about-title {
+        font-size: 2.5rem;
+    }
+    
+    .about-subtitle {
+        font-size: 1.3rem;
+    }
+    
+    .about-text {
+        font-size: 1.05rem;
+    }
+} 
