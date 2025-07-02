@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (estado && municipio) {
             // Construir URL para a página de resultados
-            let url = `municipio.php?estado=${estado}&municipio=${municipio}`;
+            let url = `produtores.php?estado=${estado}&municipio=${municipio}`;
             
             // Adicionar categorias à URL, se houver
             if (categoriasAtivas.length > 0) {
@@ -145,36 +145,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterForm = document.querySelector('.filter-form');
     if (filterForm) {
         filterForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevenir o envio padrão do formulário
-
+            // Remover o preventDefault e o redirecionamento
+            // Apenas validação simples
             const estadoSelect = document.getElementById('estado');
             const municipioSelect = document.getElementById('municipio');
             
             const estadoId = estadoSelect.value;
-            // O valor do município agora é o ID, não o nome/slug
             const municipioId = municipioSelect.value;
-
-            // Encontrar o nome do município selecionado para a URL amigável
-            const municipioNome = municipioSelect.options[municipioSelect.selectedIndex]?.text;
 
             if (!estadoId || !municipioId) {
                 alert('Por favor, selecione um estado e um município.');
+                e.preventDefault();
                 return;
             }
-
-            // Coleta as categorias ativas
-            const categoriasAtivas = Array.from(document.querySelectorAll('.category-option.active'))
-                                          .map(cat => cat.dataset.value)
-                                          .join(',');
-
-            // Constrói a URL final
-            let url = `municipio.php?estado=${estadoId}&municipio=${municipioId}`;
-            if (categoriasAtivas) {
-                url += `&categorias=${categoriasAtivas}`;
-            }
-            
-            // Redireciona para a página de resultados
-            window.location.href = url;
+            // O submit padrão irá acontecer, enviando para a própria página
         });
     }
 

@@ -57,6 +57,54 @@ $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $success_msg = '';
 $error_msg = '';
 
+// Processar upload múltiplo de fotos via modal
+if ($action === 'addphotosmodal' && $id > 0 && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("POST addphotosmodal: " . print_r($_POST, true));
+    error_log("FILES addphotosmodal: " . print_r($_FILES, true));
+    $total = 0;
+    $erros = [];
+    if (isset($_FILES['fotos_modal']) && is_array($_FILES['fotos_modal']['name'])) {
+        $upload_dir = '../uploads/parceiros/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+        for ($i = 0; $i < count($_FILES['fotos_modal']['name']); $i++) {
+            if ($_FILES['fotos_modal']['error'][$i] === UPLOAD_ERR_OK) {
+                $tmp_name = $_FILES['fotos_modal']['tmp_name'][$i];
+                $name = $_FILES['fotos_modal']['name'][$i];
+                $size = $_FILES['fotos_modal']['size'][$i];
+                $type = $_FILES['fotos_modal']['type'][$i];
+                if ($size > 2 * 1024 * 1024) {
+                    $erros[] = "$name: arquivo muito grande";
+                    continue;
+                }
+                $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
+                if (!in_array($type, $allowed_types)) {
+                    $erros[] = "$name: tipo não suportado";
+                    continue;
+                }
+                $extension = pathinfo($name, PATHINFO_EXTENSION);
+                $new_filename = uniqid('parceiro_' . $id . '_') . '.' . $extension;
+                $destination = $upload_dir . $new_filename;
+                if (move_uploaded_file($tmp_name, $destination)) {
+                    require_once(__DIR__ . '/../config/db.php');
+                    $query = "INSERT INTO fotos (entidade_tipo, entidade_id, arquivo, legenda, ordem) VALUES ('parceiro', ?, ?, '', 0)";
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("is", $id, $new_filename);
+                    $stmt->execute();
+                    $total++;
+                } else {
+                    $erros[] = "$name: erro ao mover";
+                }
+            }
+        }
+    }
+    $msg = "Foram salvas $total fotos.";
+    if ($erros) $msg .= " Erros: " . implode(', ', $erros);
+    header("Location: parceiros.php?action=edit&id=$id&success=" . urlencode($msg));
+    exit;
+}
+
 // Processar formulário de adicionar/editar
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === 'edit')) {
     // Debug do POST
@@ -189,6 +237,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                         $stmt->bind_param("ii", $id, $cat_id);
                         if (!$stmt->execute()) {
                             throw new Exception("Erro ao inserir categoria: " . $stmt->error);
+                        }
+                    }
+
+                    // Processar galeria de fotos
+                    if (isset($_FILES['galeria_fotos']) && is_array($_FILES['galeria_fotos']['name'])) {
+                        $upload_dir = '../uploads/parceiros/';
+                        if (!is_dir($upload_dir)) {
+                            mkdir($upload_dir, 0777, true);
+                        }
+                        for ($i = 0; $i < count($_FILES['galeria_fotos']['name']); $i++) {
+                            if ($_FILES['galeria_fotos']['error'][$i] === UPLOAD_ERR_OK) {
+                                $tmp_name = $_FILES['galeria_fotos']['tmp_name'][$i];
+                                $name = $_FILES['galeria_fotos']['name'][$i];
+                                $size = $_FILES['galeria_fotos']['size'][$i];
+                                $type = $_FILES['galeria_fotos']['type'][$i];
+                                if ($size > 2 * 1024 * 1024) continue;
+                                $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
+                                if (!in_array($type, $allowed_types)) continue;
+                                $extension = pathinfo($name, PATHINFO_EXTENSION);
+                                $new_filename = uniqid('parceiro_' . $id . '_') . '.' . $extension;
+                                $destination = $upload_dir . $new_filename;
+                                if (move_uploaded_file($tmp_name, $destination)) {
+                                    $query = "INSERT INTO fotos (entidade_tipo, entidade_id, arquivo, legenda, ordem) VALUES ('parceiro', ?, ?, '', 0)";
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->bind_param("is", $id, $new_filename);
+                                    $stmt->execute();
+                                }
+                            }
                         }
                     }
 
@@ -398,6 +474,8 @@ if (isset($_GET['success'])) {
         $success_msg = 'Parceiro atualizado com sucesso!';
     } else if ($_GET['success'] === 'deleted') {
         $success_msg = 'Parceiro excluído com sucesso!';
+    } else if ($_GET['success'] === 'addedphotos') {
+        $success_msg = 'Fotos adicionadas com sucesso!';
     }
 }
 
@@ -624,6 +702,8 @@ if ($action === 'edit' && $id > 0) {
     $categorias_selecionadas = array_unique($categorias_selecionadas);
 }
 
+$base_url = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) ? '/Agroneg/' : '/';
+
 include 'includes/header.php';
 ?>
 
@@ -674,6 +754,9 @@ include 'includes/header.php';
                             <th>Categoria</th>
                             <th>Tipo</th>
                             <th>Município</th>
+                            <th>Município ID</th>
+                            <th>Tipo ID</th>
+                            <th>Status</th>
                             <th>Telefone</th>
                             <th>Ações</th>
                         </tr>
@@ -684,7 +767,6 @@ include 'includes/header.php';
                                 <td><?php echo $parceiro['nome']; ?></td>
                                 <td>
                                     <?php
-                                    // Buscar categorias do parceiro
                                     $queryCat = "SELECT c.nome FROM parceiros_categorias pc JOIN categorias c ON pc.categoria_id = c.id WHERE pc.parceiro_id = ?";
                                     $stmtCat = $conn->prepare($queryCat);
                                     $stmtCat->bind_param("i", $parceiro['id']);
@@ -700,6 +782,9 @@ include 'includes/header.php';
                                 </td>
                                 <td><?php echo $parceiro['tipo_nome']; ?></td>
                                 <td><?php echo $parceiro['municipio_nome'] . '/' . $parceiro['estado_sigla']; ?></td>
+                                <td><?php echo $parceiro['municipio_id']; ?></td>
+                                <td><?php echo $parceiro['tipo_id']; ?></td>
+                                <td><?php echo $parceiro['status'] == 1 ? 'Ativo' : 'Inativo'; ?></td>
                                 <td><?php echo $parceiro['telefone']; ?></td>
                                 <td class="text-center">
                                     <a href="parceiros.php?action=edit&id=<?php echo $parceiro['id']; ?>" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Editar">
@@ -741,6 +826,9 @@ include 'includes/header.php';
                             <th>Categoria</th>
                             <th>Tipo</th>
                             <th>Município</th>
+                            <th>Município ID</th>
+                            <th>Tipo ID</th>
+                            <th>Status</th>
                             <th>Telefone</th>
                             <th>Ações</th>
                         </tr>
@@ -822,7 +910,7 @@ include 'includes/header.php';
             <div class="row mb-3 align-items-start">
                 <div class="col-md-3 d-flex flex-column align-items-center">
                     <?php if (!empty($parceiro['imagem_destaque'])): ?>
-                    <img src="../uploads/parceiros/destaque/<?php echo htmlspecialchars($parceiro['imagem_destaque']); ?>" class="img-thumbnail mb-2" alt="Imagem de destaque" style="max-height: 150px;">
+                    <img src="<?php echo $base_url . 'uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']); ?>" class="img-thumbnail mb-2" alt="Imagem de destaque" style="max-height: 150px;">
                     <?php else: ?>
                     <div class="alert alert-info h-100 d-flex align-items-center justify-content-center mb-2">
                         <div class="text-center">
@@ -833,8 +921,9 @@ include 'includes/header.php';
                     <?php endif; ?>
                     <!-- Campo de upload de imagem de destaque -->
                     <label for="imagem_destaque" class="form-label mt-2">Imagem de destaque</label>
-                    <input type="file" class="form-control" id="imagem_destaque" name="imagem_destaque" accept="image/*">
+                    <input type="file" class="form-control" id="imagem_destaque" name="imagem_destaque" accept="image/*" onchange="previewImagemDestaque(event)">
                     <small class="text-muted">Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB.</small>
+                    <div id="preview-imagem-destaque" class="mt-2"></div>
                 </div>
                 <div class="col-md-9">
                     <div class="row">
@@ -851,7 +940,7 @@ include 'includes/header.php';
                         <div class="col-md-6">
                             <label for="whatsapp" class="form-label">WhatsApp</label>
                             <input type="text" class="form-control" id="whatsapp" name="whatsapp" value="<?php echo ($parceiro['whatsapp'] ?? ''); ?>" placeholder="Ex: 5583999999999" maxlength="15" pattern="[0-9]+">
-                            <small class="text-muted">Digite apenas números, com DDD e código do país. Exemplo: <b>5583999999999</b></small>
+                            <small class="text-muted">Digite apenas números, com DDI e código do país. Exemplo: <b>5583999999999</b></small>
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email</label>
@@ -964,15 +1053,11 @@ include 'includes/header.php';
                     
                     <div class="mb-3">
                         <label for="galeria_fotos" class="form-label">Selecione múltiplas fotos (opcional)</label>
-                        <input type="file" class="form-control" id="galeria_fotos" name="galeria_fotos[]" accept="image/*" multiple>
+                        <input type="file" class="form-control" id="galeria_fotos" name="galeria_fotos[]" accept="image/*" multiple onchange="previewGaleriaFotos(event, 'preview-galeria-fotos')">
                         <small class="text-muted">Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB por arquivo. Dimensões recomendadas: 1200x800px (formato 3:2 para galeria).</small>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="galeria_legenda" class="form-label">Legenda padrão para as fotos</label>
-                        <input type="text" class="form-control" id="galeria_legenda" name="galeria_legenda" placeholder="Legenda padrão para todas as fotos">
-                        <small class="text-muted">Esta legenda será aplicada a todas as fotos. Você poderá editar individualmente depois.</small>
-                    </div>
+                    <div id="preview-galeria-fotos" class="mt-2 d-flex flex-wrap"></div>
                 </div>
             </div>
             <?php endif; ?>
@@ -1103,7 +1188,7 @@ include 'includes/header.php';
             foreach ($fotos as $foto) {
                 echo '<div class="col-md-3 mb-3">';
                 echo '<div class="card h-100">';
-                echo '<img src="../uploads/parceiros/' . htmlspecialchars($foto['arquivo']) . '" class="card-img-top" alt="Foto do parceiro" style="height: 150px; object-fit: cover;">';
+                echo '<img src="' . $base_url . 'uploads/parceiros/' . htmlspecialchars($foto['arquivo']) . '" class="card-img-top" alt="Foto do parceiro" style="height: 150px; object-fit: cover;">';
                 echo '<div class="card-body p-2">';
                 echo '<p class="small mb-1">' . htmlspecialchars($foto['legenda'] ?? 'Sem legenda') . '</p>';
                 echo '<div class="d-flex justify-content-between">';
@@ -1151,29 +1236,22 @@ include 'includes/header.php';
     </div>
 </div>
 
-<!-- Modal para adicionar foto -->
+<!-- Modal para adicionar fotos múltiplas -->
 <div class="modal fade" id="addPhotoModal" tabindex="-1" aria-labelledby="addPhotoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addPhotoModalLabel">Adicionar Foto</h5>
+                <h5 class="modal-title" id="addPhotoModalLabel">Adicionar Fotos</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="parceiros.php?action=addphoto&id=<?php echo $id; ?>" method="post" enctype="multipart/form-data">
+            <form action="parceiros.php?action=addphotosmodal&id=<?php echo $id; ?>" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="foto" class="form-label">Selecione uma Foto</label>
-                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*" required>
-                        <small class="text-muted">Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB. Dimensões recomendadas: 1200x800px (formato 3:2 para galeria).</small>
+                        <label for="fotos_modal" class="form-label">Selecione uma ou mais fotos</label>
+                        <input type="file" class="form-control" id="fotos_modal" name="fotos_modal[]" accept="image/*" multiple required onchange="previewGaleriaFotos(event, 'preview-fotos-modal')">
+                        <small class="text-muted">Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB por arquivo.</small>
                     </div>
-                    <div class="mb-3">
-                        <label for="legenda" class="form-label">Legenda</label>
-                        <input type="text" class="form-control" id="legenda" name="legenda">
-                    </div>
-                    <div class="mb-3">
-                        <label for="ordem" class="form-label">Ordem</label>
-                        <input type="number" class="form-control" id="ordem" name="ordem" value="0" min="0">
-                    </div>
+                    <div id="preview-fotos-modal" class="mt-2 d-flex flex-wrap"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1215,6 +1293,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const estadoSelect = document.getElementById('estado_id');
     const municipioSelect = document.getElementById('municipio_id');
+    const municipioSalvo = "<?php echo isset($parceiro['municipio_id']) ? $parceiro['municipio_id'] : ''; ?>";
 
     if (!estadoSelect || !municipioSelect) return;
 
@@ -1244,6 +1323,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         const option = document.createElement('option');
                         option.value = municipio.id;
                         option.textContent = municipio.nome;
+                        if (municipioSalvo && municipio.id == municipioSalvo) {
+                            option.selected = true;
+                        }
                         municipioSelect.appendChild(option);
                     });
                 } else {
@@ -1323,6 +1405,40 @@ if(form) {
     }
     whatsapp.value = valor;
   });
+}
+
+function previewImagemDestaque(event) {
+    const input = event.target;
+    const preview = document.getElementById('preview-imagem-destaque');
+    preview.innerHTML = '';
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-height: 150px;">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewGaleriaFotos(event, previewId) {
+    const input = event.target;
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-thumbnail me-2 mb-2';
+                img.style.maxHeight = '100px';
+                img.style.maxWidth = '120px';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 }
 </script>
 <head>

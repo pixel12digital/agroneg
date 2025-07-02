@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 // Construir URL para a página de resultados
-                let url = `municipio.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+                let url = `produtores.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
                 
                 // Adicionar categorias à URL, se houver
                 if (categoriasAtivas.length > 0) {

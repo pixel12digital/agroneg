@@ -10,6 +10,8 @@ error_reporting(E_ALL);
 // Página de gerenciamento de municípios
 require_once(__DIR__ . '/../config/db.php');
 
+$base_url = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) ? '/Agroneg/' : '/';
+
 // Função para verificar conexão
 function verificar_conexao($conn) {
     if (!$conn || !$conn->ping()) {
@@ -179,6 +181,25 @@ $stmt->close();
 
 // Verificar qual aba deve estar ativa
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'info';
+
+// DEBUG: Listar todos os municípios chamados 'Santa Cruz do Capibaribe'
+$query_debug = "SELECT m.id, m.nome, m.estado_id, e.nome as estado_nome, e.sigla as estado_sigla FROM municipios m JOIN estados e ON m.estado_id = e.id WHERE m.nome LIKE '%Santa Cruz do Capibaribe%' ORDER BY m.id";
+$res_debug = $conn->query($query_debug);
+if ($res_debug && $res_debug->num_rows > 0) {
+    echo '<div style="background:#fff; border:1px solid #ccc; padding:16px; margin:16px 0;">';
+    echo '<h4>DEBUG: Municípios chamados "Santa Cruz do Capibaribe"</h4>';
+    echo '<table border="1" cellpadding="6"><tr><th>ID</th><th>Nome</th><th>Estado ID</th><th>Estado</th></tr>';
+    while ($row = $res_debug->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td>' . $row['id'] . '</td>';
+        echo '<td>' . htmlspecialchars($row['nome']) . '</td>';
+        echo '<td>' . $row['estado_id'] . '</td>';
+        echo '<td>' . htmlspecialchars($row['estado_nome']) . ' (' . $row['estado_sigla'] . ')</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+    echo '</div>';
+}
 ?>
 
 <!-- Page Header -->
@@ -443,7 +464,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'info';
                             <?php if (!empty($municipio_data['imagem_principal'])): ?>
                                 <div class="mt-2">
                                     <small>Imagem atual: <?php echo htmlspecialchars($municipio_data['imagem_principal']); ?></small>
-                                    <img src="../uploads/municipios/<?php echo htmlspecialchars($municipio_data['imagem_principal']); ?>" alt="Imagem atual" class="img-thumbnail mt-2" style="max-height: 100px;">
+                                    <img src="<?php echo $base_url . 'uploads/municipios/' . htmlspecialchars($municipio_data['imagem_principal']); ?>" alt="Imagem atual" class="img-thumbnail mt-2" style="max-height: 100px;">
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -513,7 +534,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'info';
                                 <?php foreach ($galeria as $imagem): ?>
                                     <div class="col-md-3 col-sm-6 mb-4">
                                         <div class="card h-100">
-                                            <img src="../uploads/municipios/galeria/<?php echo htmlspecialchars($imagem['arquivo']); ?>" 
+                                            <img src="<?php echo $base_url . 'uploads/municipios/galeria/' . htmlspecialchars($imagem['arquivo']); ?>" 
                                                  class="card-img-top" alt="Imagem da galeria" 
                                                  style="height: 150px; object-fit: cover;">
                                             <div class="card-body">

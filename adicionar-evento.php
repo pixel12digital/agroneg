@@ -138,12 +138,16 @@ if ($estado_id) {
                             <label for="descricao" class="form-label">Descrição</label>
                             <textarea id="descricao" name="descricao" class="form-control form-textarea"><?php echo htmlspecialchars($evento['descricao'] ?? ''); ?></textarea>
                         </div>
+                        <!-- Campo de status oculto -->
+                        <input type="hidden" id="status" name="status" value="ativo">
                         <div class="form-group">
-                            <label for="status" class="form-label">Status*</label>
-                            <select id="status" name="status" class="form-select" required>
-                                <option value="ativo" <?php if(($evento['status'] ?? 'ativo')==='ativo') echo 'selected'; ?>>Ativo</option>
-                                <option value="inativo" <?php if(($evento['status'] ?? '')==='inativo') echo 'selected'; ?>>Inativo</option>
-                            </select>
+                            <label for="imagem_evento" class="form-label">Imagem do Evento</label>
+                            <input type="file" id="imagem_evento" name="imagem_evento" class="form-control" accept="image/*" onchange="previewImagemEvento(event)">
+                            <div id="preview-imagem-evento" style="margin-top:10px;">
+                                <?php if (!empty($evento['imagem'])): ?>
+                                    <img src="<?php echo htmlspecialchars($evento['imagem']); ?>" alt="Imagem do Evento" style="max-width:180px;max-height:120px;border-radius:6px;">
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <button type="submit" class="form-button"><?php echo $evento ? 'Salvar Alterações' : 'Adicionar Evento'; ?></button>
                     </form>
@@ -180,6 +184,24 @@ if ($estado_id) {
             municipioSelect.disabled = true;
         }
     });
+
+    function previewImagemEvento(event) {
+        const input = event.target;
+        const preview = document.getElementById('preview-imagem-evento');
+        preview.innerHTML = '';
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.maxWidth = '180px';
+                img.style.maxHeight = '120px';
+                img.style.borderRadius = '6px';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
     </script>
     <?php include __DIR__.'/partials/footer.php'; ?>
 </body>

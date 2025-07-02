@@ -35,19 +35,38 @@ if (!$titulo || !$categoria || !$modalidade || !$data_inicio || !$status || !$mu
 // Gerar um slug simples (sem verificação de unicidade para evitar erros complexos)
 $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $titulo)));
 
+$imagem_evento = null;
+if (isset($_FILES['imagem_evento']) && $_FILES['imagem_evento']['error'] === UPLOAD_ERR_OK) {
+    $ext = pathinfo($_FILES['imagem_evento']['name'], PATHINFO_EXTENSION);
+    $nome_arquivo = 'evento_' . uniqid() . '.' . $ext;
+    $destino = 'uploads/eventos/' . $nome_arquivo;
+    if (!is_dir('uploads/eventos')) {
+        mkdir('uploads/eventos', 0777, true);
+    }
+    if (move_uploaded_file($_FILES['imagem_evento']['tmp_name'], $destino)) {
+        $imagem_evento = $destino;
+    }
+}
+
 try {
     if ($id) {
         // ATUALIZAR evento existente
-        $sql = "UPDATE eventos_municipio SET municipio_id = ?, estado_id = ?, nome = ?, slug = ?, descricao = ?, categoria = ?, modalidade = ?, data_inicio = ?, data_fim = ?, status = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iissssssssi", $municipio_id, $estado_id, $titulo, $slug, $descricao, $categoria, $modalidade, $data_inicio, $data_fim, $status, $id);
+        if ($imagem_evento) {
+            $sql = "UPDATE eventos_municipio SET municipio_id = ?, estado_id = ?, nome = ?, slug = ?, descricao = ?, categoria = ?, modalidade = ?, data_inicio = ?, data_fim = ?, status = ?, imagem = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iisssssssssi", $municipio_id, $estado_id, $titulo, $slug, $descricao, $categoria, $modalidade, $data_inicio, $data_fim, $status, $imagem_evento, $id);
+        } else {
+            $sql = "UPDATE eventos_municipio SET municipio_id = ?, estado_id = ?, nome = ?, slug = ?, descricao = ?, categoria = ?, modalidade = ?, data_inicio = ?, data_fim = ?, status = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iissssssssi", $municipio_id, $estado_id, $titulo, $slug, $descricao, $categoria, $modalidade, $data_inicio, $data_fim, $status, $id);
+        }
         $_SESSION['sucesso'] = "Evento atualizado com sucesso!";
 
     } else {
         // INSERIR novo evento
-        $sql = "INSERT INTO eventos_municipio (municipio_id, estado_id, nome, slug, descricao, categoria, modalidade, data_inicio, data_fim, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO eventos_municipio (municipio_id, estado_id, nome, slug, descricao, categoria, modalidade, data_inicio, data_fim, status, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iissssssss", $municipio_id, $estado_id, $titulo, $slug, $descricao, $categoria, $modalidade, $data_inicio, $data_fim, $status);
+        $stmt->bind_param("iisssssssss", $municipio_id, $estado_id, $titulo, $slug, $descricao, $categoria, $modalidade, $data_inicio, $data_fim, $status, $imagem_evento);
         $_SESSION['sucesso'] = "Evento cadastrado com sucesso!";
     }
     
