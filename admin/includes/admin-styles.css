@@ -1,0 +1,184 @@
+/* General Admin Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    color: #495057;
+}
+
+.container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    margin: 30px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+h1 {
+    font-size: 28px;
+    color: #343a40;
+    margin: 0;
+}
+
+/* Filter Bar */
+.filter-bar {
+    margin-bottom: 30px;
+    background-color: #fdfdfd;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    min-width: 180px;
+    background-color: #fff;
+}
+.filter-group select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.filter-btn {
+    background: #007bff;
+    color: #fff;
+    padding: 9px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.filter-btn:hover {
+    background: #0069d9;
+}
+
+
+/* Add Button */
+.add-btn {
+    background: #1A9B60;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+}
+
+.add-btn:hover {
+    background: #148350;
+}
+.add-btn i {
+    font-size: 0.9em;
+}
+
+/* Admin Table */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px 15px;
+    border: 1px solid #e9ecef;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+.admin-table tbody tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+
+.admin-table .actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.admin-table .actions a {
+    margin: 0 5px;
+    color: #555;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.2s;
+}
+.admin-table .actions a:hover .fa-edit {
+    color: #0056b3;
+}
+.admin-table .actions a:hover .fa-trash-alt {
+    color: #c82333;
+}
+.admin-table .actions .fa-edit {
+    color: #007bff;
+}
+.admin-table .actions .fa-trash-alt {
+    color: #dc3545;
+}
+
+.status-ativo {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.status-inativo {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-block;
+} 

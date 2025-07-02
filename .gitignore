@@ -1,0 +1,17 @@
+# Arquivos sensíveis e de ambiente
+config/db.local.php
+.env
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Dependências de terceiros (caso use futuramente)
+node_modules/
+vendor/
+
+# Arquivos do sistema
+*.bak
+*.swp
+
+# Não ignore arquivos do site! 
