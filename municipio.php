@@ -44,7 +44,7 @@ $stmt_galeria->execute();
 $resultado_galeria = $stmt_galeria->get_result();
 $galeria = $resultado_galeria->fetch_all(MYSQLI_ASSOC);
 
-// --- Construir consulta para buscar parceiros ---
+// --- Construir consulta para buscar parceiros (carregamento inicial) ---
 $params = [$municipio_id];
 $types = 'i';
 
@@ -55,19 +55,8 @@ $sql_parceiros = "
     LEFT JOIN categorias c ON pc.categoria_id = c.id
     JOIN tipos_parceiros t ON p.tipo_id = t.id
     WHERE p.municipio_id = ? AND p.status = 1
+    GROUP BY p.id ORDER BY p.destaque DESC, p.nome ASC
 ";
-
-// Adicionar filtro de tipos de parceiros (categorias da URL), se houver
-if (!empty($categorias_slug)) {
-    $placeholders = implode(',', array_fill(0, count($categorias_slug), '?'));
-    $sql_parceiros .= " AND t.slug IN ($placeholders)";
-    foreach ($categorias_slug as $slug) {
-        $params[] = $slug;
-        $types .= 's';
-    }
-}
-
-$sql_parceiros .= " GROUP BY p.id ORDER BY p.destaque DESC, p.nome ASC";
 
 $stmt_parceiros = $conn->prepare($sql_parceiros);
 if ($stmt_parceiros) {
@@ -223,6 +212,13 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
     <div class="main-content">
         <section class="municipio-header">
             <div class="container">
+                <!-- Breadcrumb -->
+                <div class="municipio-breadcrumb">
+                    <a href="index.php">Home</a> &gt; 
+                    <a href="index.php">Estados</a> &gt; 
+                    <a href="index.php"><?php echo $municipio['estado_nome']; ?></a> &gt; 
+                    <span><?php echo $municipio['nome']; ?></span>
+                </div>
                 <?php if (!empty($municipio['imagem_principal'])): ?>
                 <div class="municipio-imagem">
                     <img src="uploads/municipios/<?php echo $municipio['imagem_principal']; ?>" alt="<?php echo $municipio['nome']; ?>">
@@ -231,7 +227,12 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
 
                 <!-- Filtros adicionais -->
                 <div class="municipio-filters">
-                    <h3>Filtrar por Parceiros:</h3>
+                    <h3>
+                        Filtrar por Parceiros:
+                        <span class="filtro-help" title="Clique nas categorias para filtrar os parceiros. Use clique duplo para seleção múltipla.">
+                            <i class="fas fa-question-circle"></i>
+                        </span>
+                    </h3>
                     <div class="filter-categories">
                         <div class="category-option <?php echo empty($categorias_slug) ? 'active' : ''; ?>" data-value="todos" onclick="window.location.href='municipio.php?estado=<?php echo $estado_id; ?>&municipio=<?php echo $municipio_id; ?>'">Todos</div>
                         <div class="category-option <?php echo in_array('produtores', $categorias_slug) ? 'active' : ''; ?>" data-value="produtores">Produtores</div>
@@ -247,12 +248,18 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                     <h3>Galeria de Imagens</h3>
                     <div class="galeria-miniaturas">
                         <?php foreach ($galeria as $i => $imagem): ?>
+                        <?php 
+                        // Verificar se o arquivo existe antes de tentar exibir
+                        $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
+                        if (file_exists($caminho_imagem)):
+                        ?>
                         <div class="miniatura" style="height: 84px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px #0001; cursor: pointer; position: relative;">
-                            <img src="uploads/municipios/galeria/<?php echo $imagem['arquivo']; ?>" 
+                            <img src="<?php echo $caminho_imagem; ?>" 
                                  alt="<?php echo !empty($imagem['legenda']) ? $imagem['legenda'] : $municipio['nome']; ?>"
                                  style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; border-radius: 0; box-shadow: none;"
-                                 onclick="abrirModal('uploads/municipios/galeria/<?php echo $imagem['arquivo']; ?>', '<?php echo !empty($imagem['legenda']) ? htmlspecialchars($imagem['legenda'], ENT_QUOTES) : htmlspecialchars($municipio['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)">
+                                 onclick="abrirModal('<?php echo $caminho_imagem; ?>', '<?php echo !empty($imagem['legenda']) ? htmlspecialchars($imagem['legenda'], ENT_QUOTES) : htmlspecialchars($municipio['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)">
                         </div>
+                        <?php endif; ?>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -310,8 +317,16 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                 <!-- Listagem de parceiros (AGORA AQUI) -->
                 <section class="parceiros-lista">
                     <div class="container">
-                        <?php if (count($parceiros) > 0): ?>
-                            <div class="parceiros-grid">
+                        <!-- Contador de resultados -->
+                        <div class="resultados-contador">
+                            <h4>
+                                <span class="contador-numero"><?php echo count($parceiros); ?></span> parceiro<?php echo count($parceiros) != 1 ? 's' : ''; ?> encontrado<?php echo count($parceiros) != 1 ? 's' : ''; ?> neste município
+                            </h4>
+                        </div>
+                        
+                        <!-- Container para resultados dinâmicos -->
+                        <div class="parceiros-grid" id="parceiros-container">
+                            <?php if (count($parceiros) > 0): ?>
                                 <?php foreach ($parceiros as $parceiro): ?>
                                     <div class="parceiro-card <?php echo $parceiro['destaque'] ? 'destaque' : ''; ?>">
                                         <div class="parceiro-image">
@@ -334,13 +349,13 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="sem-resultados">
-                                <p>Nenhum parceiro encontrado para os filtros selecionados.</p>
-                                <a href="municipio.php?estado=<?php echo $estado_id; ?>&municipio=<?php echo $municipio_id; ?>" class="btn-limpar-filtro">Limpar filtros</a>
-                            </div>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <div class="sem-resultados">
+                                    <p>Nenhum parceiro cadastrado neste município ainda.</p>
+                                    <p>Entre em contato conosco para cadastrar parceiros em <?php echo $municipio['nome']; ?>.</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -373,12 +388,17 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
     <script>
         // Array das fotos da galeria
         var galeriaFotos = [
-        <?php foreach ($galeria as $imagem): ?>
+        <?php foreach ($galeria as $imagem): 
+            $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
+            if (file_exists($caminho_imagem)):
+        ?>
             {
-                src: 'uploads/municipios/galeria/<?php echo $imagem['arquivo']; ?>',
+                src: '<?php echo $caminho_imagem; ?>',
                 legenda: '<?php echo !empty($imagem['legenda']) ? htmlspecialchars($imagem['legenda'], ENT_QUOTES) : htmlspecialchars($municipio['nome'], ENT_QUOTES); ?>'
             },
-        <?php endforeach; ?>
+        <?php 
+            endif;
+        endforeach; ?>
         ];
         var galeriaIndexAtual = 0;
 
