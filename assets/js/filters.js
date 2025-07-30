@@ -67,8 +67,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Detectar caminho correto da API baseado na URL atual
         const currentPath = window.location.pathname;
-        const apiPath = currentPath.includes('/Agroneg/') ? '/Agroneg/api/get_municipios.php' : '../api/get_municipios.php';
+        const hostname = window.location.hostname;
         
+        // Se estiver no localhost, usar caminho com /Agroneg/
+        // Se estiver na produção (agroneg.eco.br), usar caminho relativo
+        let apiPath;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            apiPath = '/Agroneg/api/get_municipios.php';
+        } else {
+            apiPath = '../api/get_municipios.php';
+        }
+        
+        console.log('Filters.js - Hostname:', hostname);
         console.log('Filters.js - Caminho atual:', currentPath);
         console.log('Filters.js - Caminho da API:', apiPath);
         
