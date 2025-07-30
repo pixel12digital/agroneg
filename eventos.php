@@ -247,19 +247,41 @@ document.addEventListener('DOMContentLoaded', function() {
         municipioSelect.disabled = false;
         municipioSelect.innerHTML = '<option value="">Carregando...</option>';
 
-        fetch(`/Agroneg/api/get_municipios.php?estado_id=${estadoId}`)
-            .then(response => response.json())
+        // Detectar caminho correto da API baseado na URL atual
+        const currentPath = window.location.pathname;
+        const apiPath = currentPath.includes('/Agroneg/') ? '/Agroneg/api/get_municipios.php' : 'api/get_municipios.php';
+        
+        console.log('Caminho atual:', currentPath);
+        console.log('Caminho da API:', apiPath);
+        console.log('URL completa:', `${apiPath}?estado_id=${estadoId}`);
+        
+        fetch(`${apiPath}?estado_id=${estadoId}`)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Dados recebidos:', data);
                 municipioSelect.innerHTML = '<option value="">Todos os municípios</option>';
-                data.forEach(function(municipio) {
-                    const option = document.createElement('option');
-                    option.value = municipio.id;
-                    option.textContent = municipio.nome;
-                    if (municipio.id == municipioSelecionadoId) {
-                        option.selected = true;
-                    }
-                    municipioSelect.appendChild(option);
-                });
+                
+                if (Array.isArray(data)) {
+                    data.forEach(function(municipio) {
+                        const option = document.createElement('option');
+                        option.value = municipio.id;
+                        option.textContent = municipio.nome;
+                        if (municipio.id == municipioSelecionadoId) {
+                            option.selected = true;
+                        }
+                        municipioSelect.appendChild(option);
+                    });
+                } else if (data.erro) {
+                    console.error('Erro da API:', data.erro);
+                    municipioSelect.innerHTML = '<option value="">Erro: ' + data.erro + '</option>';
+                }
+                
                 console.log('Municípios carregados:', data);
                 setTimeout(() => {
                     municipioSelect.disabled = false;
@@ -267,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 100);
             })
             .catch(error => {
-                console.error('Erro:', error);
+                console.error('Erro na requisição:', error);
                 municipioSelect.innerHTML = '<option value="">Erro ao carregar</option>';
             });
     }

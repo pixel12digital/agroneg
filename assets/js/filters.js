@@ -65,8 +65,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Mostrar indicador de carregamento
         municipioSelect.innerHTML = '<option value="">Carregando municípios...</option>';
         
+        // Detectar caminho correto da API baseado na URL atual
+        const currentPath = window.location.pathname;
+        const apiPath = currentPath.includes('/Agroneg/') ? '/Agroneg/api/get_municipios.php' : '../api/get_municipios.php';
+        
+        console.log('Filters.js - Caminho atual:', currentPath);
+        console.log('Filters.js - Caminho da API:', apiPath);
+        
         // Fazer requisição AJAX para o endpoint correto, usando estado_id
-        fetch(`api/get_municipios.php?estado_id=${estadoId}`)
+        fetch(`${apiPath}?estado_id=${estadoId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Erro na resposta da rede');

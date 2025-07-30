@@ -33,14 +33,17 @@ $dbname     = "u342734079_agroneg";
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 /* Log para conferência (agora as variáveis existem) */
-error_log("DB CONFIG ATIVO → ambiente={$ambiente}; user={$username}; db={$dbname}");
+error_log("DB CONFIG ATIVO → ambiente={$ambiente}; user={$username}; db={$dbname}; server={$servername}");
 
 /* ------------------------------------------------------------------
    4. Tratamento de erro de conexão
 -------------------------------------------------------------------*/
 if ($conn->connect_error) {
     error_log("Erro de conexão com o banco: " . $conn->connect_error);
+    error_log("Detalhes da conexão: server={$servername}, user={$username}, db={$dbname}");
     die("Erro ao conectar com o banco de dados. Por favor, tente novamente mais tarde.");
+} else {
+    error_log("Conexão com banco estabelecida com sucesso");
 }
 
 /* ------------------------------------------------------------------
