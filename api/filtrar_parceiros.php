@@ -6,7 +6,13 @@ header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Incluir arquivo de conexão
-require_once("../config/db.php");
+$config_path = __DIR__ . "/../config/db.php";
+if (file_exists($config_path)) {
+    require_once($config_path);
+} else {
+    // Tentar caminho alternativo
+    require_once("config/db.php");
+}
 
 // Validar e obter os IDs numéricos da URL
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
@@ -59,23 +65,32 @@ $sql_parceiros = "
 if (!empty($categorias_slug)) {
     // Mapear slugs para nomes de tipos
     $slug_to_nome = [
-        'produtores' => 'Produtores',
-        'criadores' => 'Criadores', 
-        'veterinarios' => 'Veterinarios',
+        'produtores' => 'Produtor',
+        'criadores' => 'Criador', 
+        'veterinarios' => 'Veterinário',
         'lojas-agropet' => 'Lojas Agropet',
         'cooperativas' => 'Cooperativas'
     ];
     
+    // Mapear slugs da URL para slugs reais da tabela
+    $slug_mapping = [
+        'produtores' => 'produtores',
+        'criadores' => 'criadores', 
+        'veterinarios' => 'veterinarios',
+        'lojas-agropet' => 'lojas-agropet',
+        'cooperativas' => 'agroneg-cooper'
+    ];
+    
     $tipos_filtro = [];
     foreach ($categorias_slug as $slug) {
-        if (isset($slug_to_nome[$slug])) {
-            $tipos_filtro[] = $slug_to_nome[$slug];
+        if (isset($slug_mapping[$slug])) {
+            $tipos_filtro[] = $slug_mapping[$slug];
         }
     }
     
     if (!empty($tipos_filtro)) {
         $placeholders = implode(',', array_fill(0, count($tipos_filtro), '?'));
-        $sql_parceiros .= " AND t.nome IN ($placeholders)";
+        $sql_parceiros .= " AND t.slug IN ($placeholders)";
         foreach ($tipos_filtro as $tipo) {
             $params[] = $tipo;
             $types .= 's';
