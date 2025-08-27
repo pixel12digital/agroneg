@@ -418,88 +418,23 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             document.getElementById('imagemModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
             
-            // Aguardar a imagem carregar para ajustar o tamanho
-            var img = document.getElementById('imagemAmpliada');
-            img.onload = function() {
-                ajustarTamanhoImagem();
-            };
+            // Configurar interações da imagem
+            setTimeout(setupImageInteractions, 100);
         }
         
         function atualizarModalGaleria() {
             var foto = galeriaFotos[galeriaIndexAtual];
             var img = document.getElementById('imagemAmpliada');
             img.src = foto.src;
+            img.style.transform = 'scale(1)';
+            img.dataset.zoom = '1';
+            img.dataset.offsetX = '0';
+            img.dataset.offsetY = '0';
             document.getElementById('legendaImagem').textContent = foto.legenda;
             document.getElementById('galeria-prev').style.display = galeriaIndexAtual > 0 ? 'block' : 'none';
             document.getElementById('galeria-next').style.display = galeriaIndexAtual < galeriaFotos.length-1 ? 'block' : 'none';
-            
-            // Ajustar tamanho quando a imagem carregar
-            img.onload = function() {
-                ajustarTamanhoImagem();
-            };
         }
         
-        function ajustarTamanhoImagem() {
-            var img = document.getElementById('imagemAmpliada');
-            var modal = document.getElementById('imagemModal');
-            var modalConteudo = document.querySelector('.modal-conteudo');
-            
-            // Obter dimensões da janela
-            var windowWidth = window.innerWidth;
-            var windowHeight = window.innerHeight;
-            
-            // Obter dimensões naturais da imagem
-            var imgNaturalWidth = img.naturalWidth;
-            var imgNaturalHeight = img.naturalHeight;
-            
-            // Calcular proporções
-            var imgRatio = imgNaturalWidth / imgNaturalHeight;
-            var windowRatio = windowWidth / windowHeight;
-            
-            // Definir tamanho máximo (90% da janela)
-            var maxWidth = windowWidth * 0.9;
-            var maxHeight = windowHeight * 0.8; // 80% para deixar espaço para legenda
-            
-            var finalWidth, finalHeight;
-            
-            if (imgRatio > windowRatio) {
-                // Imagem mais larga que a janela
-                finalWidth = Math.min(imgNaturalWidth, maxWidth);
-                finalHeight = finalWidth / imgRatio;
-            } else {
-                // Imagem mais alta que a janela
-                finalHeight = Math.min(imgNaturalHeight, maxHeight);
-                finalWidth = finalHeight * imgRatio;
-            }
-            
-            // Aplicar dimensões
-            img.style.width = finalWidth + 'px';
-            img.style.height = finalHeight + 'px';
-            img.style.maxWidth = 'none';
-            img.style.maxHeight = 'none';
-            
-            // Resetar zoom
-            img.style.transform = 'scale(1)';
-            img.dataset.zoomed = 'false';
-        }
-        
-        // Função para alternar zoom da imagem
-        function toggleZoomImagem() {
-            var img = document.getElementById('imagemAmpliada');
-            var isZoomed = img.dataset.zoomed === 'true';
-            
-            if (isZoomed) {
-                // Voltar ao tamanho normal
-                img.style.transform = 'scale(1)';
-                img.dataset.zoomed = 'false';
-                img.style.cursor = 'zoom-in';
-            } else {
-                // Aplicar zoom
-                img.style.transform = 'scale(1.5)';
-                img.dataset.zoomed = 'true';
-                img.style.cursor = 'zoom-out';
-            }
-        }
         function navegarGaleria(delta) {
             galeriaIndexAtual += delta;
             if (galeriaIndexAtual < 0) galeriaIndexAtual = 0;
@@ -523,18 +458,81 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             if (e.target === this) fecharModal();
         };
         
-        // Adicionar zoom ao clicar duplo na imagem
-        document.addEventListener('DOMContentLoaded', function() {
-            var imgAmpliada = document.getElementById('imagemAmpliada');
-            if (imgAmpliada) {
-                imgAmpliada.addEventListener('dblclick', toggleZoomImagem);
+        // Zoom e arrastar
+        let isDragging = false, startX = 0, startY = 0, offsetX = 0, offsetY = 0, zoom = 1;
+        
+        function setupImageInteractions() {
+            const img = document.getElementById('imagemAmpliada');
+            if (!img) return;
+            
+            img.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                zoom += (e.deltaY < 0) ? 0.15 : -0.15;
+                if (zoom < 1) zoom = 1;
+                if (zoom > 5) zoom = 5;
+                img.style.transform = `scale(${zoom}) translate(${offsetX}px, ${offsetY}px)`;
+                img.dataset.zoom = zoom;
+            });
+            
+            img.addEventListener('mousedown', function(e) {
+                if (zoom === 1) return;
+                isDragging = true;
+                startX = e.clientX - offsetX;
+                startY = e.clientY - offsetY;
+                img.style.cursor = 'grabbing';
+            });
+            
+            img.addEventListener('dblclick', function() {
+                if (zoom === 1) {
+                    zoom = 2;
+                    img.style.transform = `scale(${zoom})`;
+                    img.style.cursor = 'zoom-out';
+                } else {
+                    zoom = 1;
+                    offsetX = 0;
+                    offsetY = 0;
+                    img.style.transform = 'scale(1)';
+                    img.style.cursor = 'zoom-in';
+                }
+                img.dataset.zoom = zoom;
+            });
+        }
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            offsetX = e.clientX - startX;
+            offsetY = e.clientY - startY;
+            const img = document.getElementById('imagemAmpliada');
+            if (img) {
+                img.style.transform = `scale(${zoom}) translate(${offsetX}px, ${offsetY}px)`;
             }
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            const img = document.getElementById('imagemAmpliada');
+            if (img) {
+                img.style.cursor = 'grab';
+            }
+        });
+        
+        document.getElementById('imagemModal').addEventListener('scroll', function(e) { 
+            e.preventDefault(); 
         });
         
         // Ajustar tamanho da imagem quando a janela for redimensionada
         window.addEventListener('resize', function() {
             if (document.getElementById('imagemModal').style.display === 'flex') {
-                ajustarTamanhoImagem();
+                // Resetar zoom e posição quando redimensionar
+                zoom = 1;
+                offsetX = 0;
+                offsetY = 0;
+                const img = document.getElementById('imagemAmpliada');
+                if (img) {
+                    img.style.transform = 'scale(1)';
+                    img.style.cursor = 'zoom-in';
+                    img.dataset.zoom = '1';
+                }
             }
         });
     </script>
