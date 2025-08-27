@@ -150,6 +150,12 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .miniatura:hover {
+        transform: scale(1.05);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
     }
     .miniatura img {
         width: 100%;
@@ -160,8 +166,8 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         display: block;
     }
     #galeria-prev, #galeria-next {
-        background: #111;
-        border: 3px solid #fff;
+        background: rgba(0, 0, 0, 0.7);
+        border: 2px solid rgba(255, 255, 255, 0.8);
         color: #fff;
         cursor: pointer;
         z-index: 10002;
@@ -171,28 +177,31 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 24px #000b;
-        transition: background 0.2s, transform 0.2s, box-shadow 0.2s, border 0.2s;
-        opacity: 0.98;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        opacity: 0.9;
         outline: none;
         padding: 0;
+        backdrop-filter: blur(10px);
     }
     #galeria-prev:hover, #galeria-next:hover {
-        background: #ff9800;
+        background: rgba(255, 152, 0, 0.9);
         color: #fff;
         border-color: #fff;
-        transform: scale(1.13);
-        box-shadow: 0 6px 32px #ff980088, 0 2px 12px #000b;
+        transform: scale(1.1);
+        box-shadow: 0 6px 32px rgba(255, 152, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.3);
         opacity: 1;
     }
     #galeria-prev:focus, #galeria-next:focus {
         outline: 2px solid #fff;
+        outline-offset: 2px;
     }
     #galeria-prev svg, #galeria-next svg {
         width: 28px;
         height: 28px;
         display: block;
         margin: auto;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
     }
     @media (max-width: 600px) {
         #galeria-prev, #galeria-next {
@@ -365,8 +374,8 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
     <?php include __DIR__.'/partials/footer.php'; ?>
     
     <!-- Modal/Lightbox para imagens -->
-    <div id="imagemModal" class="modal-imagem" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; overflow:auto;">
-        <span class="modal-galeria-close" onclick="fecharModal()">&times;</span>
+    <div id="imagemModal" class="modal-imagem" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; overflow:auto;">
+        <span class="modal-galeria-close" onclick="fecharModal()" title="Fechar (ESC)">&times;</span>
         <button id="galeria-prev" style="position:absolute;left:24px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;z-index:10002;" onclick="navegarGaleria(-1)">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M24 10L16 20L24 30" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -377,9 +386,10 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             <path d="M16 10L24 20L16 30" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="modal-conteudo" style="display:flex; flex-direction:column; align-items:center;">
-            <img id="imagemAmpliada" src="" alt="" style="max-width:90vw; max-height:90vh; width:auto; height:auto; display:block; margin:auto; border-radius:8px; background:#222; box-shadow:0 4px 24px #000b;" />
-            <div id="legendaImagem" class="legenda-imagem" style="color:#fff; margin-top:12px; font-size:1.1em;"></div>
+        <div class="modal-conteudo" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; padding:20px;">
+            <img id="imagemAmpliada" src="" alt="" style="max-width:100%; max-height:100%; width:auto; height:auto; display:block; margin:auto; border-radius:8px; background:#222; box-shadow:0 4px 24px #000b; object-fit:contain;" />
+            <div id="legendaImagem" class="legenda-imagem" style="color:#fff; margin-top:12px; font-size:1.1em; text-align:center; max-width:90%;"></div>
+            <div class="zoom-dica" style="color:#fff; margin-top:8px; font-size:0.9em; text-align:center; opacity:0.7; font-style:italic;">Clique duplo para ampliar</div>
         </div>
     </div>
     
@@ -407,7 +417,14 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             atualizarModalGaleria();
             document.getElementById('imagemModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            
+            // Aguardar a imagem carregar para ajustar o tamanho
+            var img = document.getElementById('imagemAmpliada');
+            img.onload = function() {
+                ajustarTamanhoImagem();
+            };
         }
+        
         function atualizarModalGaleria() {
             var foto = galeriaFotos[galeriaIndexAtual];
             var img = document.getElementById('imagemAmpliada');
@@ -415,6 +432,73 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             document.getElementById('legendaImagem').textContent = foto.legenda;
             document.getElementById('galeria-prev').style.display = galeriaIndexAtual > 0 ? 'block' : 'none';
             document.getElementById('galeria-next').style.display = galeriaIndexAtual < galeriaFotos.length-1 ? 'block' : 'none';
+            
+            // Ajustar tamanho quando a imagem carregar
+            img.onload = function() {
+                ajustarTamanhoImagem();
+            };
+        }
+        
+        function ajustarTamanhoImagem() {
+            var img = document.getElementById('imagemAmpliada');
+            var modal = document.getElementById('imagemModal');
+            var modalConteudo = document.querySelector('.modal-conteudo');
+            
+            // Obter dimensões da janela
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+            
+            // Obter dimensões naturais da imagem
+            var imgNaturalWidth = img.naturalWidth;
+            var imgNaturalHeight = img.naturalHeight;
+            
+            // Calcular proporções
+            var imgRatio = imgNaturalWidth / imgNaturalHeight;
+            var windowRatio = windowWidth / windowHeight;
+            
+            // Definir tamanho máximo (90% da janela)
+            var maxWidth = windowWidth * 0.9;
+            var maxHeight = windowHeight * 0.8; // 80% para deixar espaço para legenda
+            
+            var finalWidth, finalHeight;
+            
+            if (imgRatio > windowRatio) {
+                // Imagem mais larga que a janela
+                finalWidth = Math.min(imgNaturalWidth, maxWidth);
+                finalHeight = finalWidth / imgRatio;
+            } else {
+                // Imagem mais alta que a janela
+                finalHeight = Math.min(imgNaturalHeight, maxHeight);
+                finalWidth = finalHeight * imgRatio;
+            }
+            
+            // Aplicar dimensões
+            img.style.width = finalWidth + 'px';
+            img.style.height = finalHeight + 'px';
+            img.style.maxWidth = 'none';
+            img.style.maxHeight = 'none';
+            
+            // Resetar zoom
+            img.style.transform = 'scale(1)';
+            img.dataset.zoomed = 'false';
+        }
+        
+        // Função para alternar zoom da imagem
+        function toggleZoomImagem() {
+            var img = document.getElementById('imagemAmpliada');
+            var isZoomed = img.dataset.zoomed === 'true';
+            
+            if (isZoomed) {
+                // Voltar ao tamanho normal
+                img.style.transform = 'scale(1)';
+                img.dataset.zoomed = 'false';
+                img.style.cursor = 'zoom-in';
+            } else {
+                // Aplicar zoom
+                img.style.transform = 'scale(1.5)';
+                img.dataset.zoomed = 'true';
+                img.style.cursor = 'zoom-out';
+            }
         }
         function navegarGaleria(delta) {
             galeriaIndexAtual += delta;
@@ -438,6 +522,21 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         document.getElementById('imagemModal').onclick = function(e) {
             if (e.target === this) fecharModal();
         };
+        
+        // Adicionar zoom ao clicar duplo na imagem
+        document.addEventListener('DOMContentLoaded', function() {
+            var imgAmpliada = document.getElementById('imagemAmpliada');
+            if (imgAmpliada) {
+                imgAmpliada.addEventListener('dblclick', toggleZoomImagem);
+            }
+        });
+        
+        // Ajustar tamanho da imagem quando a janela for redimensionada
+        window.addEventListener('resize', function() {
+            if (document.getElementById('imagemModal').style.display === 'flex') {
+                ajustarTamanhoImagem();
+            }
+        });
     </script>
 </body>
 </html>
