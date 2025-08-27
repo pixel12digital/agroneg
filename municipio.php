@@ -374,28 +374,30 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
     <?php include __DIR__.'/partials/footer.php'; ?>
     
     <!-- Modal/Lightbox para imagens -->
-    <div id="imagemModal" class="modal-imagem" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; overflow:auto;">
+    <div id="imagemModal" class="modal-imagem">
         <span class="modal-galeria-close" onclick="fecharModal()" title="Fechar (ESC)">&times;</span>
-        <button id="galeria-prev" style="position:absolute;left:24px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;z-index:10002;" onclick="navegarGaleria(-1)">
+        <button id="galeria-prev" class="galeria-nav-btn galeria-prev" onclick="navegarGaleria(-1)">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M24 10L16 20L24 30" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <button id="galeria-next" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;z-index:10002;" onclick="navegarGaleria(1)">
+        <button id="galeria-next" class="galeria-nav-btn galeria-next" onclick="navegarGaleria(1)">
           <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 10L24 20L16 30" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="modal-conteudo" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; padding:20px;">
-            <img id="imagemAmpliada" src="" alt="" style="max-width:100%; max-height:100%; width:auto; height:auto; display:block; margin:auto; border-radius:8px; background:#222; box-shadow:0 4px 24px #000b; object-fit:contain;" />
-            <div id="legendaImagem" class="legenda-imagem" style="color:#fff; margin-top:12px; font-size:1.1em; text-align:center; max-width:90%;"></div>
-            <div class="zoom-dica" style="color:#fff; margin-top:8px; font-size:0.9em; text-align:center; opacity:0.7; font-style:italic;">Clique duplo para ampliar</div>
+        <div class="modal-conteudo">
+            <img id="imagemAmpliada" src="" alt="" />
+            <div id="legendaImagem" class="legenda-imagem"></div>
+            <div class="zoom-dica">Clique duplo para ampliar</div>
         </div>
     </div>
     
     <script src="assets/js/header.js"></script>
     <script src="assets/js/municipio-filters.js"></script>
     <script>
+        console.log('Script da galeria carregado');
+        
         // Array das fotos da galeria
         var galeriaFotos = [
         <?php foreach ($galeria as $imagem): 
@@ -411,9 +413,25 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         endforeach; ?>
         ];
         var galeriaIndexAtual = 0;
+        
+        console.log('Fotos da galeria carregadas:', galeriaFotos);
 
         function abrirModal(imagemSrc, legenda, index) {
+            console.log('Abrindo modal para:', imagemSrc, legenda, index);
+            
+            // Verificar se há fotos na galeria
+            if (galeriaFotos.length === 0) {
+                console.error('Nenhuma foto encontrada na galeria');
+                return;
+            }
+            
             galeriaIndexAtual = typeof index === 'number' ? index : galeriaFotos.findIndex(f => f.src === imagemSrc);
+            
+            // Verificar se o índice é válido
+            if (galeriaIndexAtual < 0 || galeriaIndexAtual >= galeriaFotos.length) {
+                galeriaIndexAtual = 0;
+            }
+            
             atualizarModalGaleria();
             document.getElementById('imagemModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -423,25 +441,73 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         }
         
         function atualizarModalGaleria() {
+            console.log('Atualizando modal galeria, índice:', galeriaIndexAtual);
+            
+            // Verificar se há fotos
+            if (galeriaFotos.length === 0) {
+                console.error('Nenhuma foto para exibir');
+                return;
+            }
+            
             var foto = galeriaFotos[galeriaIndexAtual];
+            console.log('Foto selecionada:', foto);
+            
             var img = document.getElementById('imagemAmpliada');
-            img.src = foto.src;
-            img.style.transform = 'scale(1)';
-            img.dataset.zoom = '1';
-            img.dataset.offsetX = '0';
-            img.dataset.offsetY = '0';
-            document.getElementById('legendaImagem').textContent = foto.legenda;
-            document.getElementById('galeria-prev').style.display = galeriaIndexAtual > 0 ? 'block' : 'none';
-            document.getElementById('galeria-next').style.display = galeriaIndexAtual < galeriaFotos.length-1 ? 'block' : 'none';
+            if (img) {
+                img.src = foto.src;
+                img.style.transform = 'scale(1)';
+                img.dataset.zoom = '1';
+                img.dataset.offsetX = '0';
+                img.dataset.offsetY = '0';
+                console.log('Imagem definida:', img.src);
+            } else {
+                console.error('Elemento imagemAmpliada não encontrado!');
+                return;
+            }
+            
+            var legenda = document.getElementById('legendaImagem');
+            if (legenda) {
+                legenda.textContent = foto.legenda;
+            }
+            
+            // Atualizar botões de navegação
+            var prevBtn = document.getElementById('galeria-prev');
+            var nextBtn = document.getElementById('galeria-next');
+            
+            if (prevBtn) prevBtn.style.display = galeriaIndexAtual > 0 ? 'block' : 'none';
+            if (nextBtn) nextBtn.style.display = galeriaIndexAtual < galeriaFotos.length-1 ? 'block' : 'none';
         }
         
         function navegarGaleria(delta) {
+            if (galeriaFotos.length === 0) {
+                console.error('Nenhuma foto para navegar');
+                return;
+            }
+            
             galeriaIndexAtual += delta;
-            if (galeriaIndexAtual < 0) galeriaIndexAtual = 0;
-            if (galeriaIndexAtual > galeriaFotos.length-1) galeriaIndexAtual = galeriaFotos.length-1;
+            
+            // Garantir que o índice esteja dentro dos limites
+            if (galeriaIndexAtual < 0) galeriaIndexAtual = galeriaFotos.length - 1;
+            if (galeriaIndexAtual >= galeriaFotos.length) galeriaIndexAtual = 0;
+            
+            console.log('Navegando para índice:', galeriaIndexAtual);
             atualizarModalGaleria();
         }
         function fecharModal() {
+            console.log('Fechando modal');
+            
+            // Resetar zoom e posição
+            zoom = 1;
+            offsetX = 0;
+            offsetY = 0;
+            
+            const img = document.getElementById('imagemAmpliada');
+            if (img) {
+                img.style.transform = 'scale(1)';
+                img.style.cursor = 'zoom-in';
+                img.dataset.zoom = '1';
+            }
+            
             document.getElementById('imagemModal').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
@@ -533,6 +599,20 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                     img.style.cursor = 'zoom-in';
                     img.dataset.zoom = '1';
                 }
+            }
+        });
+
+        // Verificação final quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, verificando galeria...');
+            console.log('Total de fotos na galeria:', galeriaFotos.length);
+            
+            if (galeriaFotos.length > 0) {
+                console.log('✅ Galeria carregada com sucesso');
+                console.log('Fotos disponíveis:', galeriaFotos.map(f => f.src));
+            } else {
+                console.warn('⚠️ Nenhuma foto encontrada na galeria');
+                console.warn('Verifique se há fotos cadastradas no banco de dados');
             }
         });
     </script>
