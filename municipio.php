@@ -256,20 +256,23 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                 <div class="municipio-galeria">
                     <h3>Galeria de Imagens</h3>
                     <div class="galeria-miniaturas">
-                        <?php foreach ($galeria as $i => $imagem): ?>
                         <?php 
-                        // Verificar se o arquivo existe antes de tentar exibir
-                        $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
-                        if (file_exists($caminho_imagem)):
+                        $debug_index = 0;
+                        foreach ($galeria as $i => $imagem): 
+                            $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
+                            if (file_exists($caminho_imagem)):
                         ?>
                         <div class="miniatura" style="height: 84px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px #0001; cursor: pointer; position: relative;">
                             <img src="<?php echo $caminho_imagem; ?>" 
                                  alt="<?php echo !empty($imagem['legenda']) ? $imagem['legenda'] : $municipio['nome']; ?>"
                                  style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; border-radius: 0; box-shadow: none;"
-                                 onclick="abrirModal('<?php echo $caminho_imagem; ?>', '<?php echo !empty($imagem['legenda']) ? htmlspecialchars($imagem['legenda'], ENT_QUOTES) : htmlspecialchars($municipio['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)">
+                                 onclick="abrirModal('<?php echo $caminho_imagem; ?>', '<?php echo !empty($imagem['legenda']) ? htmlspecialchars($imagem['legenda'], ENT_QUOTES) : htmlspecialchars($municipio['nome'], ENT_QUOTES); ?>', <?php echo $debug_index; ?>)">
                         </div>
-                        <?php endif; ?>
-                        <?php endforeach; ?>
+                        <?php 
+                            $debug_index++;
+                            endif; 
+                        endforeach; 
+                        ?>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -415,6 +418,20 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         var galeriaIndexAtual = 0;
         
         console.log('Fotos da galeria carregadas:', galeriaFotos);
+        console.log('Total de fotos:', galeriaFotos.length);
+        
+        // Verificar se há fotos duplicadas
+        var srcs = galeriaFotos.map(f => f.src);
+        var uniqueSrcs = [...new Set(srcs)];
+        if (srcs.length !== uniqueSrcs.length) {
+            console.warn('⚠️ ATENÇÃO: Fotos duplicadas detectadas!');
+            console.warn('Fotos únicas:', uniqueSrcs);
+        }
+        
+        // Verificar se os índices estão corretos
+        galeriaFotos.forEach((foto, index) => {
+            console.log(`📸 Foto ${index}:`, foto.src);
+        });
 
         function abrirModal(imagemSrc, legenda, index) {
             console.log('Abrindo modal para:', imagemSrc, legenda, index);
