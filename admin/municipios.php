@@ -2,11 +2,6 @@
 // Adicionar buffer de saída no início do arquivo
 ob_start();
 
-// Exibir erros para depuração
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 // Página de gerenciamento de municípios
 require_once(__DIR__ . '/../config/db.php');
 
@@ -42,7 +37,6 @@ $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $success_msg = '';
 $error_msg = '';
-$debug = isset($_GET['debug']) && $_GET['debug'] === '1';
 
 // Verificar se é uma ação de exclusão
 if ($action === 'delete' && $id > 0) {
@@ -181,25 +175,6 @@ $stmt->close();
 
 // Verificar qual aba deve estar ativa
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'info';
-
-// DEBUG: Listar todos os municípios chamados 'Santa Cruz do Capibaribe'
-$query_debug = "SELECT m.id, m.nome, m.estado_id, e.nome as estado_nome, e.sigla as estado_sigla FROM municipios m JOIN estados e ON m.estado_id = e.id WHERE m.nome LIKE '%Santa Cruz do Capibaribe%' ORDER BY m.id";
-$res_debug = $conn->query($query_debug);
-if ($res_debug && $res_debug->num_rows > 0) {
-    echo '<div style="background:#fff; border:1px solid #ccc; padding:16px; margin:16px 0;">';
-    echo '<h4>DEBUG: Municípios chamados "Santa Cruz do Capibaribe"</h4>';
-    echo '<table border="1" cellpadding="6"><tr><th>ID</th><th>Nome</th><th>Estado ID</th><th>Estado</th></tr>';
-    while ($row = $res_debug->fetch_assoc()) {
-        echo '<tr>';
-        echo '<td>' . $row['id'] . '</td>';
-        echo '<td>' . htmlspecialchars($row['nome']) . '</td>';
-        echo '<td>' . $row['estado_id'] . '</td>';
-        echo '<td>' . htmlspecialchars($row['estado_nome']) . ' (' . $row['estado_sigla'] . ')</td>';
-        echo '</tr>';
-    }
-    echo '</table>';
-    echo '</div>';
-}
 ?>
 
 <!-- Page Header -->
@@ -675,9 +650,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit' && $id > 0) {
             }
             
             if (empty($error_msg)) {
-                // Remover o UPDATE isolado de teste
-                // Adicionar debug visual dos parâmetros
-                echo "<pre>DEBUG PARAMS: "; print_r($params); echo "</pre>";
                 // Atualizar o município - incluir todos os campos
                 $query = "UPDATE municipios SET 
                           nome = ?, 
