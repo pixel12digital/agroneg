@@ -639,13 +639,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit' && $id > 0) {
                     mkdir($upload_dir, 0777, true);
                 }
                 
-                $file_name = time() . '_' . $_FILES['imagem_principal']['name'];
-                $upload_file = $upload_dir . $file_name;
+                // Validar extensão do arquivo
+                $file_extension = strtolower(pathinfo($_FILES['imagem_principal']['name'], PATHINFO_EXTENSION));
+                $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
                 
-                if (move_uploaded_file($_FILES['imagem_principal']['tmp_name'], $upload_file)) {
-                    $imagem_principal = $file_name;
+                if (!in_array($file_extension, $allowed_extensions)) {
+                    $error_msg = 'Formato de arquivo não suportado. Use apenas: ' . implode(', ', $allowed_extensions);
                 } else {
-                    $error_msg = 'Erro ao fazer upload da imagem.';
+                    // Criar nome de arquivo com timestamp e nome da cidade
+                    $nome_cidade = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $nome));
+                    $file_name = time() . '_' . $nome_cidade . '.' . $file_extension;
+                    $upload_file = $upload_dir . $file_name;
+                    
+                    if (move_uploaded_file($_FILES['imagem_principal']['tmp_name'], $upload_file)) {
+                        $imagem_principal = $file_name;
+                    } else {
+                        $error_msg = 'Erro ao fazer upload da imagem. Verifique as permissões do diretório.';
+                    }
                 }
             }
             
@@ -731,13 +741,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'add') {
                 mkdir($upload_dir, 0777, true);
             }
             
-            $file_name = time() . '_' . $_FILES['imagem_principal']['name'];
-            $upload_file = $upload_dir . $file_name;
+            // Validar extensão do arquivo
+            $file_extension = strtolower(pathinfo($_FILES['imagem_principal']['name'], PATHINFO_EXTENSION));
+            $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
             
-            if (move_uploaded_file($_FILES['imagem_principal']['tmp_name'], $upload_file)) {
-                $imagem_principal = $file_name;
+            if (!in_array($file_extension, $allowed_extensions)) {
+                $error_msg = 'Formato de arquivo não suportado. Use apenas: ' . implode(', ', $allowed_extensions);
             } else {
-                $error_msg = 'Erro ao fazer upload da imagem.';
+                // Criar nome de arquivo com timestamp e nome da cidade
+                $nome_cidade = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '_', $nome));
+                $file_name = time() . '_' . $nome_cidade . '.' . $file_extension;
+                $upload_file = $upload_dir . $file_name;
+                
+                if (move_uploaded_file($_FILES['imagem_principal']['tmp_name'], $upload_file)) {
+                    $imagem_principal = $file_name;
+                } else {
+                    $error_msg = 'Erro ao fazer upload da imagem. Verifique as permissões do diretório.';
+                }
             }
         }
         
