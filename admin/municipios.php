@@ -83,7 +83,7 @@ if ($action === 'delete_gallery_image' && $id > 0 && isset($_GET['image_id'])) {
     $image_id = (int)$_GET['image_id'];
     
     // Buscar informações da imagem
-    $query = "SELECT imagem, municipio_id FROM municipio_galeria WHERE id = ?";
+    $query = "SELECT arquivo, entidade_id FROM fotos WHERE id = ? AND entidade_tipo = 'municipio'";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $image_id);
     $stmt->execute();
@@ -91,16 +91,16 @@ if ($action === 'delete_gallery_image' && $id > 0 && isset($_GET['image_id'])) {
     
     if ($result->num_rows === 1) {
         $image_data = $result->fetch_assoc();
-        $municipio_id = $image_data['municipio_id'];
+        $municipio_id = $image_data['entidade_id'];
         
         // Excluir registro do banco
-        $query = "DELETE FROM municipio_galeria WHERE id = ?";
+        $query = "DELETE FROM fotos WHERE id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $image_id);
         
         if ($stmt->execute()) {
             // Tentar excluir arquivo físico
-            $file_path = '../uploads/municipios/galeria/' . $image_data['imagem'];
+            $file_path = '../uploads/municipios/galeria/' . $image_data['arquivo'];
             if (file_exists($file_path)) {
                 unlink($file_path);
             }
