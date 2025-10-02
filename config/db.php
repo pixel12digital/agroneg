@@ -22,10 +22,10 @@ if (
 /* ------------------------------------------------------------------
    2. Credenciais (sempre banco remoto Hostinger)
 -------------------------------------------------------------------*/
-$servername = "srv1607.hstgr.io";
-$username   = "u342734079_agroneg";
-$password   = "o6Ve3mAjf~";
-$dbname     = "u342734079_agroneg";
+$servername = "srv1890.hstgr.io";
+$username   = "u664918047_agroneg";
+$password   = "Los@ngo#081081";
+$dbname     = "u664918047_agroneg";
 
 /* ------------------------------------------------------------------
    3. Conexão
