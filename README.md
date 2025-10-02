@@ -1,4 +1,7 @@
-# AgroNeg - Portal de Agronegócio
+# AgroNeg - Portal de Agronegócio 🚀
+
+## ✅ Deploy Automático Ativo!
+Sistema de deploy automático via GitHub Actions configurado e funcionando!
 
 ## 📋 Descrição
 Portal web para conectar produtores, criadores, veterinários e outros profissionais do agronegócio.
