@@ -1,0 +1,2 @@
+Teste de deploy FTP - $(date)
+Este arquivo deve aparecer na pasta public_html se o FTP estiver funcionando.
