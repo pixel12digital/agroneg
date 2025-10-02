@@ -12,20 +12,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Deploy to Hostinger via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.8
       with:
-        server: 147.93.38.101
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        port: 21
-        local-dir: ./
-        server-dir: public_html/
-        log-level: verbose
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/.env
-          **/README.md
-          **/.github/**
+        host: ${{ secrets.HOSTINGER_HOST }}
+        username: ${{ secrets.HOSTINGER_USERNAME }}
+        password: ${{ secrets.HOSTINGER_PASSWORD }}
+        port: 65002
+        script: |
+          cd /home/u664918047/domains/lightgrey-seahorse-783260.hostingersite.com/public_html
+          rm -rf * .*
+          git clone https://github.com/pixel12digital/agroneg.git temp_deploy
+          cp -r temp_deploy/* .
+          cp -r temp_deploy/.* . 2>/dev/null || true
+          rm -rf temp_deploy
+          chmod -R 755 .
+          chmod -R 777 uploads/
