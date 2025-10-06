@@ -47,11 +47,20 @@
                                     <select id="estado" name="estado" class="filter-select" required>
                                         <option value="">Selecione um estado</option>
                                         <?php
-                                        // Incluir arquivo de conexão
-                                        require_once("config/db.php");
+                                        // Sistema de cache para reduzir consultas ao banco
+                                        $cache_file = 'cache/estados.json';
+                                        $cache_duration = 3600; // 1 hora
                                         
-                                        // Apenas prossiga se a conexão com o banco de dados foi bem-sucedida
-                                        if (isset($conn) && $conn->connect_error === null) {
+                                        // Verificar se o cache existe e é válido
+                                        if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_duration) {
+                                            $estados = json_decode(file_get_contents($cache_file), true);
+                                        } else {
+                                            // Incluir arquivo de conexão
+                                            require_once("config/db.php");
+                                            
+                                            // Obter conexão com banco de dados
+                                            $conn = getAgronegConnection();
+                                            
                                             // Consultar apenas estados que possuem municípios cadastrados
                                             $query = "SELECT DISTINCT e.id, e.nome 
                                                      FROM estados e
@@ -59,22 +68,29 @@
                                                      ORDER BY e.nome ASC";
                                             $resultado = $conn->query($query);
                                             
-                                            // VERIFICA SE A CONSULTA FUNCIONOU ANTES DE USAR O RESULTADO
-                                            if ($resultado) {
-                                                if ($resultado->num_rows > 0) {
-                                                    while ($estado = $resultado->fetch_assoc()) {
-                                                        // Usar o ID do estado como valor
-                                                        echo '<option value="' . htmlspecialchars($estado['id']) . '">' . htmlspecialchars($estado['nome']) . '</option>';
-                                                    }
+                                            $estados = [];
+                                            if ($resultado && $resultado->num_rows > 0) {
+                                                while ($estado = $resultado->fetch_assoc()) {
+                                                    $estados[] = $estado;
                                                 }
-                                            } else {
-                                                // Se a consulta falhou, registra o erro (visível nos logs do servidor) e evita que a página quebre
-                                                error_log("Erro na consulta de estados em index.php: " . $conn->error);
-                                                echo '<option value="" disabled>Não foi possível carregar os estados</option>';
+                                                
+                                                // Criar diretório cache se não existir
+                                                if (!is_dir('cache')) {
+                                                    mkdir('cache', 0755, true);
+                                                }
+                                                
+                                                // Salvar no cache
+                                                file_put_contents($cache_file, json_encode($estados));
+                                            }
+                                        }
+                                        
+                                        // Exibir estados
+                                        if (!empty($estados)) {
+                                            foreach ($estados as $estado) {
+                                                echo '<option value="' . htmlspecialchars($estado['id']) . '">' . htmlspecialchars($estado['nome']) . '</option>';
                                             }
                                         } else {
-                                            // Adicionado para o caso de a conexão falhar
-                                            echo '<option value="" disabled>Erro de conexão</option>';
+                                            echo '<option value="" disabled>Não foi possível carregar os estados</option>';
                                         }
                                         ?>
                                     </select>

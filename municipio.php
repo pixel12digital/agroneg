@@ -17,6 +17,9 @@ if (!$estado_id || !$municipio_id) {
     exit;
 }
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 // Obter informações do município usando os IDs
 $query_municipio = "
     SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla

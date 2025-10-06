@@ -16,6 +16,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = $_POST["usuario"] ?? '';
     $senha = $_POST["senha"] ?? '';
 
+    // Obter conexão com banco de dados
+    $conn = getAgronegConnection();
+    
     // Consulta ao banco de dados
     $stmt = $conn->prepare("SELECT * FROM usuarios WHERE usuario = ? AND ativo = 1 LIMIT 1");
     $stmt->bind_param("s", $usuario);
