@@ -14,4 +14,8 @@ vendor/
 *.bak
 *.swp
 
+# Cache do sistema (gerado automaticamente)
+cache/
+*.cache
+
 # Não ignore arquivos do site! 
