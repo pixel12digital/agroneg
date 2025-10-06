@@ -1,0 +1,17 @@
+{
+  "deploy_config": {
+    "repository": "https://github.com/pixel12digital/agroneg.git",
+    "branch": "main",
+    "directory": "",
+    "notes": "Configuração correta para deploy na Hostinger - usar branch 'main' em vez de 'master'"
+  },
+  "github_actions": {
+    "trigger": "push to main branch",
+    "status": "configured_correctly"
+  },
+  "troubleshooting": {
+    "issue": "Hostinger tentando clonar branch 'master'",
+    "solution": "Configurar branch como 'main' no painel da Hostinger",
+    "manual_fix": "No painel Hostinger: Advanced → Git → Branch: main"
+  }
+}
