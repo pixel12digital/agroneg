@@ -1,5 +1,9 @@
 <?php
 require_once(__DIR__ . '/../config/db.php');
+
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 // Função para buscar configuração
 function get_config($conn, $chave) {
     $stmt = $conn->prepare("SELECT valor FROM configuracoes WHERE chave = ? LIMIT 1");
@@ -13,6 +17,7 @@ function get_config($conn, $chave) {
     $stmt->close();
     return $valor;
 }
+
 $telefone = get_config($conn, 'telefone');
 $email = get_config($conn, 'email');
 $whatsapp = get_config($conn, 'whatsapp');
