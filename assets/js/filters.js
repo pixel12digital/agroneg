@@ -71,11 +71,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Se estiver no localhost, usar caminho com /Agroneg/
         // Se estiver na produção (agroneg.eco.br), usar caminho relativo
+        // Usar API com cache para reduzir conexões ao banco
         let apiPath;
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            apiPath = '/Agroneg/api/get_municipios.php';
+            apiPath = '/Agroneg/api/get_municipios_cached.php';
         } else {
-            apiPath = '../api/get_municipios.php';
+            apiPath = '../api/get_municipios_cached.php';
         }
         
         console.log('Filters.js - Hostname:', hostname);

@@ -19,6 +19,9 @@ if (
     $ambiente = 'producao';
 }
 
+// Tornar a variável ambiente global para uso em outros arquivos
+$GLOBALS['ambiente'] = $ambiente;
+
 /* ------------------------------------------------------------------
    2. Variável global para conexão única
 -------------------------------------------------------------------*/
@@ -112,8 +115,9 @@ function closeAgronegConnection() {
 
 /* ------------------------------------------------------------------
    5. Obter conexão para uso nos arquivos (compatibilidade)
+   NOTA: Conexão não é criada automaticamente para evitar múltiplas conexões
 -------------------------------------------------------------------*/
-$conn = getAgronegConnection();
+// $conn = getAgronegConnection(); // Removido para evitar conexões desnecessárias
 
 /* ------------------------------------------------------------------
    6. Fechar conexão ao final do script

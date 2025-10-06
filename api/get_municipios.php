@@ -1,7 +1,9 @@
 <?php
 // Configurações de cabeçalho para API
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Em produção, restrinja para o seu domínio
+if (!headers_sent()) {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *'); // Em produção, restrinja para o seu domínio
+}
 
 // Ativar logs de erro para debug
 ini_set('display_errors', 0);
@@ -13,6 +15,9 @@ error_log("API get_municipios.php chamada - " . date('Y-m-d H:i:s'));
 
 // Incluir arquivo de conexão com o banco de dados
 require_once(__DIR__ . '/../config/db.php');
+
+// Obter conexão quando necessário
+$conn = getAgronegConnection();
 
 // A API agora espera 'estado_id' em vez de 'estado' (sigla)
 $estado_id = isset($_GET['estado_id']) ? filter_var($_GET['estado_id'], FILTER_VALIDATE_INT) : null;
@@ -63,6 +68,5 @@ error_log("Municípios encontrados: " . count($municipios));
 // Retornar os municípios como JSON
 echo json_encode($municipios);
 
-// Fechar conexão
-$stmt_municipios->close();
-$conn->close(); 
+// Fechar statement
+$stmt_municipios->close(); 

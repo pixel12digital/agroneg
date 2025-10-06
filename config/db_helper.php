@@ -4,7 +4,7 @@
  * Usado para otimizar consultas e reduzir carga de conexões
  */
 
-require_once __DIR__ . '/db.dart';
+require_once __DIR__ . '/db.php';
 
 class DBHelper {
     private static $query_count = 0;
@@ -148,7 +148,7 @@ function db_delete($sql, $types = "", $params = []) {
 // Registrar função de fechamento para mostrar estatísticas
 register_shutdown_function(function() {
     if ($GLOBALS['ambiente'] === 'desenvolvimento') {
-        error_log("DB STATS: Query count: " . DBHelper::$query_count . ", Error count: " . $DBHelper::$error_count);
+        error_log("DB STATS: Query count: " . DBHelper::$query_count . ", Error count: " . DBHelper::$error_count);
     }
 });
 ?>
