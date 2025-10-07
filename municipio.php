@@ -2,6 +2,59 @@
 // Incluir arquivo de conexão
 require_once("config/db.php");
 
+// --- DETECTAR URLs AMIGÁVEIS VIA PATH ---
+// Verificar se a URL é amigável via REQUEST_URI
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Padrão de URL amigável: /ce/iracema
+if (preg_match('/^\/([a-z]{2})\/([a-z0-9-]+)\/?$/', $path, $matches)) {
+    $_GET['slug_estado'] = $matches[1];
+    $_GET['slug_municipio'] = $matches[2];
+}
+
+// --- REDIRECIONAMENTO AUTOMÁTICO PARA URLs AMIGÁVEIS ---
+// Se está usando IDs (URL antiga), redirecionar para slug
+if (isset($_GET['estado']) && isset($_GET['municipio']) && !isset($_GET['slug_estado'])) {
+    $estado_id = filter_var($_GET['estado'], FILTER_VALIDATE_INT);
+    $municipio_id = filter_var($_GET['municipio'], FILTER_VALIDATE_INT);
+    
+    if ($estado_id && $municipio_id) {
+        require_once("config/db.php");
+        $conn = getAgronegConnection();
+        
+        $query = "
+            SELECT m.slug as municipio_slug, e.sigla as estado_sigla
+            FROM municipios m
+            JOIN estados e ON m.estado_id = e.id
+            WHERE e.id = ? AND m.id = ?
+            LIMIT 1
+        ";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $estado_id, $municipio_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $nova_url = "/" . strtolower($row['estado_sigla']) . "/" . $row['municipio_slug'];
+            
+            // Preservar parâmetros adicionais
+            $params = $_GET;
+            unset($params['estado'], $params['municipio']);
+            if (!empty($params)) {
+                $nova_url .= "?" . http_build_query($params);
+            }
+            
+            // Redirecionamento 301 permanente
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Location: $nova_url");
+            exit;
+        }
+    }
+}
+
 // --- Lógica de Filtros e Busca ---
 
 // Obter conexão com banco de dados
