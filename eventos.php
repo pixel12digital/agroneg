@@ -5,6 +5,9 @@ ini_set('log_errors', 1); // Ativar log de erros em produção
 error_reporting(E_ALL);
 require_once("config/db.php");
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 // --- Lógica de Filtros ---
 $filtros = [
     'estado_id' => isset($_GET['estado_id']) ? filter_var($_GET['estado_id'], FILTER_VALIDATE_INT) : null,
@@ -168,7 +171,7 @@ $filtros = [
             <h3 class="results-title">Resultados da Busca</h3>
             <div class="results-list">
                 <?php
-                $where = [];
+                $where = ['ev.status = 1']; // Apenas eventos ativos
                 $params = [];
                 $types = '';
 
@@ -176,7 +179,7 @@ $filtros = [
                 if ($filtros['municipio_id']) { $where[] = 'ev.municipio_id = ?'; $params[] = $filtros['municipio_id']; $types .= 'i'; }
                 if ($filtros['categoria']) { $where[] = 'ev.categoria = ?'; $params[] = $filtros['categoria']; $types .= 's'; }
                 
-                $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+                $where_sql = 'WHERE ' . implode(' AND ', $where);
                 
                 $sql = "SELECT ev.*, m.nome as municipio_nome, es.sigla as estado_sigla 
                         FROM eventos_municipio ev
