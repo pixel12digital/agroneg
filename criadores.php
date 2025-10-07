@@ -3,6 +3,9 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 require_once("config/db.php");
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 // Validar e obter os IDs numéricos da URL
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
@@ -133,21 +136,20 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
                             <div class="filter-row">
                                 <label for="municipio" class="filter-label">Município</label>
                                 <select id="municipio" name="municipio" class="filter-select" required>
-                                    <option value="">Selecione um estado</option>
+                                    <option value="">Selecione um município</option>
                                     <?php
-                                    $disabled = empty($estado_id) ? 'disabled' : '';
-                                    echo $disabled;
-                                    if (!empty($estado_id)) {
+                                    if ($estado_id) {
                                         $query_municipios = "SELECT id, nome FROM municipios WHERE estado_id = ? ORDER BY nome ASC";
                                         $stmt_municipios = $conn->prepare($query_municipios);
-                                        $stmt_municipios->bind_param('i', $estado_id);
-                                        $stmt_municipios->execute();
-                                        $res_municipios = $stmt_municipios->get_result();
-                                        if ($res_municipios && $res_municipios->num_rows > 0) {
-                                            while ($mun = $res_municipios->fetch_assoc()) {
-                                                $selected = ($municipio_id == $mun['id']) ? 'selected' : '';
-                                                // Exibir o ID ao lado do nome para debug
-                                                echo '<option value="' . htmlspecialchars($mun['id']) . '" ' . $selected . '>' . htmlspecialchars($mun['nome']) . ' (ID: ' . $mun['id'] . ')</option>';
+                                        if ($stmt_municipios) {
+                                            $stmt_municipios->bind_param("i", $estado_id);
+                                            $stmt_municipios->execute();
+                                            $resultado_municipios = $stmt_municipios->get_result();
+                                            if ($resultado_municipios && $resultado_municipios->num_rows > 0) {
+                                                while ($municipio = $resultado_municipios->fetch_assoc()) {
+                                                    $selected = ($municipio_id == $municipio['id']) ? 'selected' : '';
+                                                    echo '<option value="' . htmlspecialchars($municipio['id']) . '" ' . $selected . '>' . htmlspecialchars($municipio['nome']) . '</option>';
+                                                }
                                             }
                                         }
                                     }

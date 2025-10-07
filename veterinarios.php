@@ -3,6 +3,9 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 require_once("config/db.php");
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
 $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria']) : null;

@@ -24,18 +24,15 @@ if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_durat
     exit;
 }
 
-// Se não há cache válido, tentar conectar ao banco
+// Se não há cache válido, conectar ao banco
 try {
-    // Credenciais do banco
-    $servername = "srv1890.hstgr.io";
-    $username   = "u664918047_agroneg";
-    $password   = "Los@ngo#081081";
-    $dbname     = "u664918047_agroneg";
+    // Incluir configuração de banco de dados
+    require_once(__DIR__ . '/../config/db.php');
     
-    // Conexão direta
-    $conn = new mysqli($servername, $username, $password, $dbname);
+    // Obter conexão
+    $conn = getAgronegConnection();
     
-    if ($conn->connect_error) {
+    if (!$conn) {
         // Se não conseguir conectar, tentar usar cache antigo se existir
         if (file_exists($cache_file)) {
             echo file_get_contents($cache_file);
@@ -46,9 +43,6 @@ try {
         echo json_encode(['erro' => 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.']);
         exit;
     }
-    
-    // Configurar charset
-    $conn->set_charset("utf8mb4");
     
     // Consulta
     $query = "SELECT id, nome FROM municipios WHERE estado_id = ? ORDER BY nome ASC";
@@ -83,7 +77,6 @@ try {
     
     echo $json_result;
     $stmt->close();
-    $conn->close();
     
 } catch (Exception $e) {
     // Se houver erro, tentar usar cache antigo
