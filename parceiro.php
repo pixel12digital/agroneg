@@ -2,6 +2,9 @@
 // Incluir arquivo de conexão
 require_once("config/db.php");
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
 // Verificar se foi passado o slug do parceiro
 $slug = isset($_GET['slug']) ? $_GET['slug'] : null;
 
