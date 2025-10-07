@@ -41,7 +41,7 @@
                             <h2 class="filter-title">Encontre parceiros agropecuários em sua região</h2>
                             <p class="filter-subtitle">Selecione seu estado, município e tipo de parceiro para começar</p>
                             
-                            <form class="filter-form" method="GET" action="municipio.php">
+                            <form class="filter-form" id="filter-form">
                                 <div class="filter-row">
                                     <label for="estado" class="filter-label">Estado</label>
                                     <select id="estado" name="estado" class="filter-select" required>
@@ -62,7 +62,7 @@
                                             $conn = getAgronegConnection();
                                             
                                             // Consultar apenas estados que possuem municípios cadastrados
-                                            $query = "SELECT DISTINCT e.id, e.nome 
+                                            $query = "SELECT DISTINCT e.id, e.nome, e.sigla 
                                                      FROM estados e
                                                      INNER JOIN municipios m ON e.id = m.estado_id
                                                      ORDER BY e.nome ASC";
@@ -87,7 +87,7 @@
                                         // Exibir estados
                                         if (!empty($estados)) {
                                             foreach ($estados as $estado) {
-                                                echo '<option value="' . htmlspecialchars($estado['id']) . '">' . htmlspecialchars($estado['nome']) . '</option>';
+                                                echo '<option value="' . htmlspecialchars($estado['id']) . '" data-slug="' . strtolower($estado['sigla']) . '">' . htmlspecialchars($estado['nome']) . '</option>';
                                             }
                                         } else {
                                             echo '<option value="" disabled>Não foi possível carregar os estados</option>';
@@ -201,5 +201,35 @@
 
     <script src="assets/js/header.js"></script>
     <script src="assets/js/filters.js"></script>
+    <script>
+    // Redirecionar para URLs amigáveis
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const estado = document.getElementById('estado').value;
+        const municipio = document.getElementById('municipio').value;
+        const tipo = document.getElementById('tipo').value;
+        
+        if (!estado || !municipio || !tipo) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+        
+        // Obter slugs dos selects
+        const estadoSelect = document.getElementById('estado');
+        const municipioSelect = document.getElementById('municipio');
+        const tipoSelect = document.getElementById('tipo');
+        
+        const estadoSlug = estadoSelect.options[estadoSelect.selectedIndex].dataset.slug;
+        const municipioSlug = municipioSelect.options[municipioSelect.selectedIndex].dataset.slug;
+        const tipoSlug = tipoSelect.options[tipoSelect.selectedIndex].dataset.slug;
+        
+        // Construir URL amigável
+        let url = `/${tipoSlug}/${estadoSlug}/${municipioSlug}`;
+        
+        // Redirecionar
+        window.location.href = url;
+    });
+    </script>
 </body>
 </html>

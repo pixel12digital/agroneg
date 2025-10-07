@@ -4,40 +4,62 @@ require_once("config/db.php");
 
 // --- Lógica de Filtros e Busca ---
 
-// Validar e obter os IDs numéricos da URL
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se está usando slugs ou IDs
+$slug_estado = isset($_GET['slug_estado']) ? $_GET['slug_estado'] : null;
+$slug_municipio = isset($_GET['slug_municipio']) ? $_GET['slug_municipio'] : null;
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
 
 // Obter categorias para filtrar (tipos de parceiros)
 $categorias_slug = isset($_GET['categorias']) ? explode(',', $_GET['categorias']) : [];
 
-// Se os IDs não forem válidos, redireciona para a home
-if (!$estado_id || !$municipio_id) {
-    header('Location: index.php');
-    exit;
+$municipio = null;
+
+// Buscar município por slugs (URLs amigáveis)
+if ($slug_estado && $slug_municipio) {
+    $query_municipio = "
+        SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
+        FROM municipios m
+        JOIN estados e ON m.estado_id = e.id
+        WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
+    ";
+    $stmt_municipio = $conn->prepare($query_municipio);
+    $stmt_municipio->bind_param("ss", $slug_estado, $slug_municipio);
+    $stmt_municipio->execute();
+    $resultado_municipio = $stmt_municipio->get_result();
+    
+    if ($resultado_municipio->num_rows > 0) {
+        $municipio = $resultado_municipio->fetch_assoc();
+        $estado_id = $municipio['estado_id'];
+        $municipio_id = $municipio['municipio_id'];
+    }
 }
-
-// Obter conexão com banco de dados
-$conn = getAgronegConnection();
-
-// Obter informações do município usando os IDs
-$query_municipio = "
-    SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla
-    FROM municipios m
-    JOIN estados e ON m.estado_id = e.id
-    WHERE e.id = ? AND m.id = ?
-";
-$stmt_municipio = $conn->prepare($query_municipio);
-$stmt_municipio->bind_param("ii", $estado_id, $municipio_id);
-$stmt_municipio->execute();
-$resultado_municipio = $stmt_municipio->get_result();
+// Buscar município por IDs (URLs antigas - compatibilidade)
+elseif ($estado_id && $municipio_id) {
+    $query_municipio = "
+        SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
+        FROM municipios m
+        JOIN estados e ON m.estado_id = e.id
+        WHERE e.id = ? AND m.id = ?
+    ";
+    $stmt_municipio = $conn->prepare($query_municipio);
+    $stmt_municipio->bind_param("ii", $estado_id, $municipio_id);
+    $stmt_municipio->execute();
+    $resultado_municipio = $stmt_municipio->get_result();
+    
+    if ($resultado_municipio->num_rows > 0) {
+        $municipio = $resultado_municipio->fetch_assoc();
+    }
+}
 
 // Se o município não for encontrado, redireciona
-if ($resultado_municipio->num_rows === 0) {
+if (!$municipio) {
     header('Location: index.php');
     exit;
 }
-$municipio = $resultado_municipio->fetch_assoc();
 
 // Buscar imagens da galeria do município
 $query_galeria = "SELECT arquivo, legenda FROM fotos WHERE entidade_tipo = 'municipio' AND entidade_id = ? ORDER BY ordem, id";
@@ -246,7 +268,7 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                         </span>
                     </h3>
                     <div class="filter-categories">
-                        <div class="category-option <?php echo empty($categorias_slug) ? 'active' : ''; ?>" data-value="todos" onclick="window.location.href='municipio.php?estado=<?php echo $estado_id; ?>&municipio=<?php echo $municipio_id; ?>'">Todos</div>
+                        <div class="category-option <?php echo empty($categorias_slug) ? 'active' : ''; ?>" data-value="todos" onclick="window.location.href='/<?php echo strtolower($municipio['estado_sigla']); ?>/<?php echo $municipio['slug']; ?>'">Todos</div>
                         <div class="category-option <?php echo in_array('produtores', $categorias_slug) ? 'active' : ''; ?>" data-value="produtores">Produtores</div>
                         <div class="category-option <?php echo in_array('criadores', $categorias_slug) ? 'active' : ''; ?>" data-value="criadores">Criadores</div>
                         <div class="category-option <?php echo in_array('veterinarios', $categorias_slug) ? 'active' : ''; ?>" data-value="veterinarios">Veterinários</div>

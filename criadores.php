@@ -6,10 +6,37 @@ require_once("config/db.php");
 // Obter conexão com banco de dados
 $conn = getAgronegConnection();
 
-// Validar e obter os IDs numéricos da URL
+// Verificar se está usando slugs ou IDs
+$slug_estado = isset($_GET['slug_estado']) ? $_GET['slug_estado'] : null;
+$slug_municipio = isset($_GET['slug_municipio']) ? $_GET['slug_municipio'] : null;
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
 $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria']) : null;
+
+// Se está usando slugs, converter para IDs
+if ($slug_estado && $slug_municipio) {
+    $query = "
+        SELECT m.id as municipio_id, e.id as estado_id, m.nome as municipio_nome, e.nome as estado_nome
+        FROM municipios m
+        JOIN estados e ON m.estado_id = e.id
+        WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $slug_estado, $slug_municipio);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $estado_id = $row['estado_id'];
+        $municipio_id = $row['municipio_id'];
+        $municipio_nome = $row['municipio_nome'];
+        $estado_nome = $row['estado_nome'];
+    } else {
+        header('Location: index.php');
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

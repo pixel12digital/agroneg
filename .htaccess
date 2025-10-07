@@ -1,75 +1,32 @@
-# Proteger arquivos sensíveis
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Desabilitar listagem de diretórios
-Options -Indexes
-
-# Proteger diretório de uploads
-# <Directory "uploads">
-#     Options -Indexes
-#     <FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|html|shtml|sh|cgi)$">
-#         Order Deny,Allow
-#         Deny from all
-#     </FilesMatch>
-# </Directory>
-
-# Forçar HTTPS apenas fora do localhost
 RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP_HOST} !^localhost [NC]
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Redirecionar www para non-www
-RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
-RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+# Redirecionar URLs antigas para novas URLs amigáveis
+# Redirecionar municipio.php?estado=X&municipio=Y para /estado/municipio
+RewriteCond %{QUERY_STRING} ^estado=([0-9]+)&municipio=([0-9]+)$
+RewriteRule ^municipio\.php$ /redirecionar-municipio.php?estado=%1&municipio=%2 [L,QSA]
 
-# Proteger contra ataques comuns
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-</IfModule>
+# URLs amigáveis para municípios: /pb/barra-de-sao-miguel
+RewriteRule ^([a-z]{2})/([a-z0-9-]+)/?$ municipio.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
 
-# Compressão GZIP
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-</IfModule>
+# URLs amigáveis para parceiros: /parceiro/fazenda-sao-joao
+RewriteRule ^parceiro/([a-z0-9-]+)/?$ parceiro.php?slug=$1 [L,QSA]
 
-# Cache de navegador
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/jpg "access plus 1 year"
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType text/javascript "access plus 1 month"
-    ExpiresByType image/x-icon "access plus 1 year"
-    ExpiresDefault "access plus 2 days"
-</IfModule>
+# URLs amigáveis para páginas de parceiros por tipo: /produtores/pb/barra-de-sao-miguel
+RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/([a-z]{2})/([a-z0-9-]+)/?$ $1.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
 
-# PHP configurações
-# php_value upload_max_filesize 10M
-# php_value post_max_size 10M
-# php_value max_execution_time 300
-# php_value max_input_time 300
+# URLs amigáveis para páginas de parceiros por tipo sem município: /produtores
+RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/?$ $1.php [L,QSA]
 
-# Desabilitar exibição de erros em produção
-# php_flag display_errors off
-# php_flag display_startup_errors off
-# php_value error_reporting E_ALL
-# php_flag log_errors on
-# php_value error_log logs/php_errors.log 
+# URLs amigáveis para eventos: /eventos/pb/barra-de-sao-miguel
+RewriteRule ^eventos/([a-z]{2})/([a-z0-9-]+)/?$ eventos.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
+
+# URLs amigáveis para eventos sem município: /eventos
+RewriteRule ^eventos/?$ eventos.php [L,QSA]
+
+# Manter arquivos estáticos e APIs funcionando
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Redirecionar para index.php se não for um arquivo ou diretório
+RewriteRule ^(.*)$ index.php [L]

@@ -14,10 +14,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultadosContador = document.querySelector('.resultados-contador');
     const semResultados = document.querySelector('.sem-resultados');
     
-    // Parâmetros da URL atual
+    // Parâmetros da URL atual - detectar se é slug ou ID
     const urlParams = new URLSearchParams(window.location.search);
     const estadoAtual = urlParams.get('estado');
     const municipioAtual = urlParams.get('municipio');
+    const slugEstado = urlParams.get('slug_estado');
+    const slugMunicipio = urlParams.get('slug_municipio');
+    
+    // Detectar tipo de URL (slug ou ID)
+    const isSlugUrl = window.location.pathname.includes('/') && !window.location.search.includes('estado=');
+    
+    // Função para obter URL base
+    function getBaseUrl() {
+        if (isSlugUrl && slugEstado && slugMunicipio) {
+            return `/${slugEstado}/${slugMunicipio}`;
+        } else if (estadoAtual && municipioAtual) {
+            return `municipio.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+        }
+        return '';
+    }
     
     // Event listener para as categorias
     categorias.forEach(function(categoria) {
@@ -123,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     semResultados.innerHTML = `
                         <p>Nenhum parceiro encontrado para as categorias selecionadas.</p>
                         <p>Tente selecionar outras categorias ou limpar os filtros para ver todos os parceiros.</p>
-                        <a href="municipio.php?estado=${estadoAtual}&municipio=${municipioAtual}" class="btn-limpar-filtro">Limpar filtros</a>
+                        <a href="${getBaseUrl()}" class="btn-limpar-filtro">Limpar filtros</a>
                     `;
                 }
                 
@@ -151,10 +166,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Função para atualizar URL sem recarregar
     function atualizarURL(categoriasAtivas) {
-        let novaURL = `municipio.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+        let novaURL = getBaseUrl();
         
         if (categoriasAtivas.length > 0) {
-            novaURL += `&categorias=${categoriasAtivas.join(',')}`;
+            if (isSlugUrl) {
+                novaURL += `?categorias=${categoriasAtivas.join(',')}`;
+            } else {
+                novaURL += `&categorias=${categoriasAtivas.join(',')}`;
+            }
         }
         
         // Atualizar URL sem recarregar a página

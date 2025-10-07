@@ -145,17 +145,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const estado = urlParams.get('estado');
         const municipio = urlParams.get('municipio');
         
-        if (estado && municipio) {
-            // Construir URL para a página de resultados
-            let url = `produtores.php?estado=${estado}&municipio=${municipio}`;
+        if (estado && municipio && categoriasAtivas.length > 0) {
+            // Obter slugs do estado e município
+            const estadoSelect = document.getElementById('estado');
+            const municipioSelect = document.getElementById('municipio');
             
-            // Adicionar categorias à URL, se houver
-            if (categoriasAtivas.length > 0) {
-                url += `&categorias=${categoriasAtivas.join(',')}`;
+            const estadoSlug = estadoSelect.options[estadoSelect.selectedIndex].dataset.slug;
+            const municipioSlug = municipioSelect.options[municipioSelect.selectedIndex].dataset.slug;
+            
+            // Usar a primeira categoria selecionada para construir a URL
+            const tipoSlug = categoriasAtivas[0];
+            
+            // Construir URL amigável
+            let url = `/${tipoSlug}/${estadoSlug}/${municipioSlug}`;
+            
+            // Se houver múltiplas categorias, adicionar como parâmetro
+            if (categoriasAtivas.length > 1) {
+                url += `?categorias=${categoriasAtivas.join(',')}`;
             }
             
             // Redirecionar para a página de resultados
             window.location.href = url;
+        } else {
+            alert('Por favor, selecione um estado, município e pelo menos uma categoria.');
         }
     }
 
