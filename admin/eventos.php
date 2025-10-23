@@ -108,7 +108,7 @@ $estados = $conn->query("SELECT DISTINCT e.id, e.nome, e.sigla
 <div class="container">
     <div class="admin-header">
         <h1>Painel de Eventos</h1>
-        <a href="../adicionar-evento.php" class="add-btn"><i class="fas fa-plus"></i> Adicionar Evento</a>
+        <a href="editar-evento.php" class="add-btn"><i class="fas fa-plus"></i> Adicionar Evento</a>
     </div>
 
     <?php if (isset($_GET['acao']) && $_GET['acao'] === 'sucesso' && isset($_SESSION['sucesso'])): ?>
@@ -188,7 +188,7 @@ $estados = $conn->query("SELECT DISTINCT e.id, e.nome, e.sigla
                     <td><?php echo htmlspecialchars($ev['municipio_nome']) . ' - ' . htmlspecialchars($ev['estado_sigla']); ?></td>
                     <td><span class="status-<?php echo htmlspecialchars($ev['status']); ?>"><?php echo ucfirst(htmlspecialchars($ev['status'])); ?></span></td>
                     <td class="actions">
-                        <a href="../adicionar-evento.php?id=<?php echo $ev['id']; ?>" title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="editar-evento.php?id=<?php echo $ev['id']; ?>" title="Editar"><i class="fas fa-edit"></i></a>
                         <a href="eventos.php?delete=<?php echo $ev['id']; ?>" title="Excluir" onclick="return confirm('Deseja realmente excluir este evento?');"><i class="fas fa-trash-alt"></i></a>
                     </td>
                 </tr>
