@@ -251,7 +251,12 @@ $filtros = [
                             echo '<div class="event-card">';
                             echo '<div class="event-image">';
                             if (!empty($ev['imagem'])) {
-                                echo '<img src="' . $base_path . 'uploads/eventos/' . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
+                                // Se a imagem já tem o caminho completo, usar diretamente
+                                if (strpos($ev['imagem'], 'uploads/') === 0) {
+                                    echo '<img src="' . $base_path . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
+                                } else {
+                                    echo '<img src="' . $base_path . 'uploads/eventos/' . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
+                                }
                             } else {
                                 echo '<img src="' . $base_path . 'assets/images/agroneg-campo.jpg" alt="Evento">';
                             }
