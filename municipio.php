@@ -242,8 +242,17 @@ $sql_parceiros = "
     LEFT JOIN categorias c ON pc.categoria_id = c.id
     JOIN tipos_parceiros t ON p.tipo_id = t.id
     WHERE p.municipio_id = ? AND p.status = 1
-    GROUP BY p.id ORDER BY p.destaque DESC, p.nome ASC
 ";
+
+// Aplicar filtro de categorias se especificado
+if (!empty($categorias_slug)) {
+    $placeholders = str_repeat('?,', count($categorias_slug) - 1) . '?';
+    $sql_parceiros .= " AND t.slug IN ($placeholders)";
+    $params = array_merge($params, $categorias_slug);
+    $types .= str_repeat('s', count($categorias_slug));
+}
+
+$sql_parceiros .= " GROUP BY p.id ORDER BY p.destaque DESC, p.nome ASC";
 
 // Executar consulta de parceiros com cache
 if (function_exists('executeQueryWithCache')) {
