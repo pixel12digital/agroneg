@@ -65,6 +65,19 @@ document.addEventListener('DOMContentLoaded', function() {
         municipioSelect.disabled = false;
     }
     
+    // Event listener para o select de municípios
+    if (municipioSelect) {
+        municipioSelect.addEventListener('change', function() {
+            const estadoId = estadoSelect.value;
+            const municipioId = this.value;
+            
+            if (estadoId && municipioId) {
+                console.log('🔄 Município alterado manualmente:', municipioId);
+                atualizarCategoriasDinamicas(estadoId, municipioId);
+            }
+        });
+    }
+    
     // Event listener para o select de estados
     if (estadoSelect) {
         console.log('✅ Event listener do estado configurado');
@@ -166,6 +179,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Habilitar o select após o carregamento
                 municipioSelect.disabled = false;
+                
+                // Atualizar categorias dinamicamente quando município é carregado
+                atualizarCategoriasDinamicas(estadoId, municipioSelect.value);
             })
             .catch(error => {
                 console.error('❌ Erro ao carregar municípios:', error);
@@ -307,25 +323,180 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('⚠️ Gerando slug dinamicamente:', municipioSlug, 'de:', municipioNome);
             }
             
-            let url;
-            
-            if (categoriasAtivas.length > 0) {
-                // Se há categorias selecionadas, redirecionar para página específica do tipo
-                const tipoSlug = categoriasAtivas[0];
-                url = `/${tipoSlug}/${estadoSlug}/${municipioSlug}`;
-                
-                // Se houver múltiplas categorias, adicionar como parâmetro
-                if (categoriasAtivas.length > 1) {
-                    url += `?categorias=${categoriasAtivas.join(',')}`;
+            // Em vez de redirecionar, carregar resultados via AJAX
+            console.log('🔄 Carregando resultados via AJAX...');
+            carregarResultadosProdutores(estadoId, municipioId, categoriasAtivas);
+        });
+    }
+
+    // Função para atualizar categorias dinamicamente
+    function atualizarCategoriasDinamicas(estadoId, municipioId) {
+        if (!municipioId || municipioId === '') {
+            return;
+        }
+        
+        console.log('🔄 Atualizando categorias para:', {estadoId, municipioId});
+        
+        // Detectar tipo de página baseado na URL
+        const currentPath = window.location.pathname;
+        let tipo = 'produtores'; // padrão
+        
+        if (currentPath.includes('/criadores')) {
+            tipo = 'criadores';
+        } else if (currentPath.includes('/veterinarios')) {
+            tipo = 'veterinarios';
+        } else if (currentPath.includes('/lojas-agropet')) {
+            tipo = 'lojas-agropet';
+        } else if (currentPath.includes('/cooperativas')) {
+            tipo = 'cooperativas';
+        }
+        
+        console.log('📄 Tipo de página detectado:', tipo);
+        
+        // Construir URL da API para buscar categorias
+        let url = `/api/get_categorias_municipio.php?estado=${estadoId}&municipio=${municipioId}&tipo=${tipo}`;
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na resposta da rede: ' + response.status);
                 }
-            } else {
-                // Se não há categorias selecionadas, redirecionar para página do município
-                url = `/${estadoSlug}/${municipioSlug}`;
-            }
-            
-            console.log('🎯 URL final gerada:', url);
-            console.log('🚀 Iniciando redirecionamento...');
-            window.location.href = url;
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Categorias recebidas:', data);
+                
+                const filterCategories = document.getElementById('filter-categories');
+                if (filterCategories) {
+                    if (data.categorias && data.categorias.length > 0) {
+                        // Limpar categorias existentes
+                        filterCategories.innerHTML = '';
+                        
+                        // Adicionar novas categorias
+                        data.categorias.forEach(categoria => {
+                            const div = document.createElement('div');
+                            div.className = 'category-option';
+                            div.dataset.value = categoria.slug;
+                            div.textContent = categoria.nome;
+                            
+                            // Adicionar event listener para clique
+                            div.addEventListener('click', function() {
+                                // Toggle da classe active
+                                this.classList.toggle('active');
+                                
+                                // Atualizar campo hidden
+                                const categoriaHidden = document.getElementById('categoria-hidden');
+                                if (categoriaHidden) {
+                                    const categoriasAtivas = [];
+                                    document.querySelectorAll('.category-option.active').forEach(function(cat) {
+                                        categoriasAtivas.push(cat.dataset.value);
+                                    });
+                                    categoriaHidden.value = categoriasAtivas.join(',');
+                                }
+                            });
+                            
+                            filterCategories.appendChild(div);
+                        });
+                        
+                        console.log('✅ Categorias atualizadas com sucesso');
+                    } else {
+                        filterCategories.innerHTML = '<div class="no-categories">Nenhuma categoria específica encontrada para este município.</div>';
+                        console.log('⚠️ Nenhuma categoria encontrada');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erro ao carregar categorias:', error);
+                const filterCategories = document.getElementById('filter-categories');
+                if (filterCategories) {
+                    filterCategories.innerHTML = '<div class="no-categories">Erro ao carregar categorias.</div>';
+                }
+            });
+    }
+
+    // Função para carregar resultados de parceiros via AJAX
+    function carregarResultadosProdutores(estadoId, municipioId, categoriasAtivas) {
+        console.log('🔄 Carregando resultados para:', {estadoId, municipioId, categoriasAtivas});
+        
+        // Detectar tipo de página baseado na URL
+        const currentPath = window.location.pathname;
+        let tipo = 'produtores'; // padrão
+        
+        if (currentPath.includes('/criadores')) {
+            tipo = 'criadores';
+        } else if (currentPath.includes('/veterinarios')) {
+            tipo = 'veterinarios';
+        } else if (currentPath.includes('/lojas-agropet')) {
+            tipo = 'lojas-agropet';
+        } else if (currentPath.includes('/cooperativas')) {
+            tipo = 'cooperativas';
+        }
+        
+        console.log('📄 Tipo de página detectado:', tipo);
+        
+        // Construir URL da API
+        let url = '/api/filtrar_parceiros.php?estado=' + estadoId + '&municipio=' + municipioId + '&tipo=' + tipo;
+        
+        // Adicionar categorias se houver
+        if (categoriasAtivas.length > 0) {
+            url += '&categorias=' + categoriasAtivas.join(',');
+        }
+        
+        console.log('📡 URL da API:', url);
+        
+        // Mostrar indicador de carregamento
+        const parceirosGrid = document.querySelector('.parceiros-grid');
+        if (parceirosGrid) {
+            const tipoTexto = tipo === 'produtores' ? 'produtores' : 
+                             tipo === 'criadores' ? 'criadores' : 
+                             tipo === 'veterinarios' ? 'veterinários' : 
+                             tipo === 'lojas-agropet' ? 'lojas agropet' : 
+                             tipo === 'cooperativas' ? 'cooperativas' : 'parceiros';
+            parceirosGrid.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #006837; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div><p style="margin-top: 20px;">Carregando ' + tipoTexto + '...</p></div>';
+        }
+        
+        // Fazer requisição AJAX
+        fetch(url)
+            .then(response => {
+                console.log('📨 Resposta recebida:', response.status);
+                if (!response.ok) {
+                    throw new Error('Erro na resposta da rede: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Dados recebidos:', data);
+                
+                // Atualizar resultados
+                if (parceirosGrid) {
+                    if (data.parceiros && data.parceiros.length > 0) {
+                        // Atualizar contador
+                        const resultadosTitle = document.querySelector('.results-title');
+                        if (resultadosTitle) {
+                            resultadosTitle.textContent = data.contador_texto || 'Resultados da Busca';
+                        }
+                        
+                        // Atualizar grid de parceiros
+                        parceirosGrid.innerHTML = data.html_parceiros || '';
+                        
+                        console.log('✅ Resultados atualizados com sucesso');
+                    } else {
+                        const tipoTexto = tipo === 'produtores' ? 'produtor' : 
+                                         tipo === 'criadores' ? 'criador' : 
+                                         tipo === 'veterinarios' ? 'veterinário' : 
+                                         tipo === 'lojas-agropet' ? 'loja agropet' : 
+                                         tipo === 'cooperativas' ? 'cooperativa' : 'parceiro';
+                        parceirosGrid.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Nenhum ' + tipoTexto + ' encontrado neste município.</p>';
+                        console.log('⚠️ Nenhum resultado encontrado');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erro ao carregar resultados:', error);
+                
+                if (parceirosGrid) {
+                    parceirosGrid.innerHTML = '<div style="text-align: center; padding: 40px;"><p style="color: #e74c3c;">Erro ao carregar os resultados. Tente novamente.</p><button onclick="location.reload()" style="background: #006837; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Tentar Novamente</button></div>';
+                }
         });
     }
 

@@ -144,6 +144,32 @@ if ($slug_estado && $slug_municipio) {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+        
+        /* Animação do spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #006837;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .no-categories {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -202,14 +228,36 @@ if ($slug_estado && $slug_municipio) {
                                 <button type="submit" class="filter-button" id="buscar-btn">Buscar</button>
                             </div>
                         </form>
-                        <div class="filter-categories">
+                        <div class="filter-categories" id="filter-categories">
                             <?php
-                            $query_categorias = "SELECT nome, slug FROM categorias WHERE tipo_id = (SELECT id FROM tipos_parceiros WHERE slug = 'produtores' LIMIT 1) ORDER BY nome";
-                            $res_categorias = $conn->query($query_categorias);
-                            if ($res_categorias) {
-                                while ($cat = $res_categorias->fetch_assoc()) {
-                                    echo '<div class="category-option" data-value="' . htmlspecialchars($cat['slug']) . '">' . htmlspecialchars($cat['nome']) . '</div>';
+                            // Se há estado e município selecionados, mostrar categorias dos parceiros encontrados
+                            if ($estado_id && $municipio_id) {
+                                $query_categorias_dinamicas = "
+                                    SELECT DISTINCT c.nome, c.slug 
+                                    FROM categorias c
+                                    INNER JOIN parceiros_categorias pc ON c.id = pc.categoria_id
+                                    INNER JOIN parceiros p ON pc.parceiro_id = p.id
+                                    INNER JOIN tipos_parceiros t ON p.tipo_id = t.id
+                                    WHERE p.municipio_id = ? AND p.status = 1 AND t.slug = 'produtores'
+                                    ORDER BY c.nome
+                                ";
+                                $stmt_categorias = $conn->prepare($query_categorias_dinamicas);
+                                if ($stmt_categorias) {
+                                    $stmt_categorias->bind_param("i", $municipio_id);
+                                    $stmt_categorias->execute();
+                                    $res_categorias = $stmt_categorias->get_result();
+                                    
+                                    if ($res_categorias && $res_categorias->num_rows > 0) {
+                                        while ($cat = $res_categorias->fetch_assoc()) {
+                                            echo '<div class="category-option" data-value="' . htmlspecialchars($cat['slug']) . '">' . htmlspecialchars($cat['nome']) . '</div>';
+                                        }
+                                    } else {
+                                        echo '<div class="no-categories">Nenhuma categoria específica encontrada para este município.</div>';
+                                    }
                                 }
+                            } else {
+                                // Se não há seleção, mostrar mensagem
+                                echo '<div class="no-categories">Selecione um estado e município para ver as categorias disponíveis.</div>';
                             }
                             ?>
                         </div>
@@ -258,7 +306,7 @@ if ($slug_estado && $slug_municipio) {
                                 if (!empty($parceiro['imagem_destaque'])) {
                                     echo '<img src="' . $base_path . 'uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 } else {
-                                    echo '<img src="' . $base_path . 'assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+                                    echo '<img src="' . $base_path . 'assets/img/placeholder.svg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 }
                                 if ($parceiro['destaque']) {
                                     echo '<span class="destaque-badge">Destaque</span>';

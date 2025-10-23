@@ -139,6 +139,16 @@ $base_path = '/';
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+        
+        .no-categories {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -196,14 +206,36 @@ $base_path = '/';
                                 <button type="submit" class="filter-button" id="buscar-btn">Buscar</button>
                             </div>
                         </form>
-                        <div class="filter-categories">
+                        <div class="filter-categories" id="filter-categories">
                             <?php
-                            $query_categorias = "SELECT nome, slug FROM categorias WHERE tipo_id = (SELECT id FROM tipos_parceiros WHERE slug = 'criadores' LIMIT 1) ORDER BY nome";
-                            $res_categorias = $conn->query($query_categorias);
-                            if ($res_categorias) {
-                                while ($cat = $res_categorias->fetch_assoc()) {
-                                    echo '<div class="category-option" data-value="' . htmlspecialchars($cat['slug']) . '">' . htmlspecialchars($cat['nome']) . '</div>';
+                            // Se há estado e município selecionados, mostrar categorias dos parceiros encontrados
+                            if ($estado_id && $municipio_id) {
+                                $query_categorias_dinamicas = "
+                                    SELECT DISTINCT c.nome, c.slug 
+                                    FROM categorias c
+                                    INNER JOIN parceiros_categorias pc ON c.id = pc.categoria_id
+                                    INNER JOIN parceiros p ON pc.parceiro_id = p.id
+                                    INNER JOIN tipos_parceiros t ON p.tipo_id = t.id
+                                    WHERE p.municipio_id = ? AND p.status = 1 AND t.slug = 'criadores'
+                                    ORDER BY c.nome
+                                ";
+                                $stmt_categorias = $conn->prepare($query_categorias_dinamicas);
+                                if ($stmt_categorias) {
+                                    $stmt_categorias->bind_param("i", $municipio_id);
+                                    $stmt_categorias->execute();
+                                    $res_categorias = $stmt_categorias->get_result();
+                                    
+                                    if ($res_categorias && $res_categorias->num_rows > 0) {
+                                        while ($cat = $res_categorias->fetch_assoc()) {
+                                            echo '<div class="category-option" data-value="' . htmlspecialchars($cat['slug']) . '">' . htmlspecialchars($cat['nome']) . '</div>';
+                                        }
+                                    } else {
+                                        echo '<div class="no-categories">Nenhuma categoria específica encontrada para este município.</div>';
+                                    }
                                 }
+                            } else {
+                                // Se não há seleção, mostrar mensagem
+                                echo '<div class="no-categories">Selecione um estado e município para ver as categorias disponíveis.</div>';
                             }
                             ?>
                         </div>

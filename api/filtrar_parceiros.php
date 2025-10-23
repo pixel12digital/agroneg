@@ -77,6 +77,13 @@ if (!$municipio || empty($municipio)) {
 $municipio = $municipio[0]; // Pegar primeiro resultado
 
 // Usar função otimizada para buscar parceiros (com cache)
+// Detectar tipo de página baseado na URL ou parâmetro
+$tipo_slug = isset($_GET['tipo']) ? trim($_GET['tipo']) : 'produtores';
+
+// Filtrar por tipo específico se não especificar categorias
+if (empty($categorias_slug)) {
+    $categorias_slug = [$tipo_slug]; // Por padrão, mostrar apenas o tipo da página atual
+}
 $parceiros = getParceirosByMunicipio($municipio_id, $categorias_slug);
 
 if ($parceiros === false) {
@@ -91,9 +98,9 @@ if (!empty($parceiros)) {
         $html_parceiros .= '<div class="parceiro-image">';
         
         if (!empty($parceiro['imagem_destaque'])) {
-            $html_parceiros .= '<img src="/Agroneg/uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+            $html_parceiros .= '<img src="/uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
         } else {
-            $html_parceiros .= '<img src="/Agroneg/assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+            $html_parceiros .= '<img src="/assets/img/placeholder.svg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
         }
         
         if ($parceiro['destaque']) {
@@ -113,7 +120,7 @@ if (!empty($parceiros)) {
             $html_parceiros .= '<p class="parceiro-descricao">' . substr(htmlspecialchars($parceiro['descricao']), 0, 120) . '...</p>';
         }
         
-        $html_parceiros .= '<a href="/Agroneg/parceiro/' . htmlspecialchars($parceiro['slug']) . '" class="btn-ver-mais">Ver detalhes</a>';
+        $html_parceiros .= '<a href="/parceiro/' . htmlspecialchars($parceiro['slug']) . '" class="btn-ver-mais">Ver detalhes</a>';
         $html_parceiros .= '</div>';
         $html_parceiros .= '</div>';
     }
