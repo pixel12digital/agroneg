@@ -1,5 +1,14 @@
 <?php
 require_once("config/db.php");
+
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro ao conectar ao banco de dados');
+}
+
 // Se for edição, buscar dados do evento
 $evento = null;
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
