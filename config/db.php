@@ -169,6 +169,7 @@ function getMunicipioBySlug($slug_estado, $slug_municipio) {
     }
     
     try {
+        // Primeira tentativa: slug exato
         $query = "
             SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
             FROM municipios m
@@ -186,15 +187,62 @@ function getMunicipioBySlug($slug_estado, $slug_municipio) {
         $stmt->execute();
         $result = $stmt->get_result();
         
-        if ($result->num_rows === 0) {
+        if ($result->num_rows > 0) {
+            $municipio = $result->fetch_assoc();
             $stmt->close();
-            return false;
+            return $municipio;
         }
-        
-        $municipio = $result->fetch_assoc();
         $stmt->close();
         
-        return $municipio;
+        // Segunda tentativa: variações comuns de slug
+        $variacoes = [
+            // Barra de São Miguel: variações comuns
+            'barra-de-so-miguel' => 'barra-de-sao-miguel',
+            'barra-de-s-ao-miguel' => 'barra-de-sao-miguel',
+            'barra-de-são-miguel' => 'barra-de-sao-miguel',
+            
+            // Outras variações comuns
+            'sao-paulo' => 'sao-paulo',
+            'sao-jose' => 'sao-jose',
+            'sao-joao' => 'sao-joao',
+            'sao-pedro' => 'sao-pedro',
+            'sao-miguel' => 'sao-miguel',
+            'sao-luis' => 'sao-luis',
+            'sao-francisco' => 'sao-francisco',
+            'sao-sebastiao' => 'sao-sebastiao'
+        ];
+        
+        // Se o slug atual está nas variações, tentar o slug correto
+        if (isset($variacoes[$slug_municipio])) {
+            $slug_correto = $variacoes[$slug_municipio];
+            
+            $query_fallback = "
+                SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
+                FROM municipios m
+                JOIN estados e ON m.estado_id = e.id
+                WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
+            ";
+            
+            $stmt_fallback = $conn->prepare($query_fallback);
+            if ($stmt_fallback) {
+                $stmt_fallback->bind_param("ss", $slug_estado, $slug_correto);
+                $stmt_fallback->execute();
+                $result_fallback = $stmt_fallback->get_result();
+                
+                if ($result_fallback->num_rows > 0) {
+                    $municipio = $result_fallback->fetch_assoc();
+                    $stmt_fallback->close();
+                    
+                    // Log para debug
+                    error_log("MunicipioBySlug: Slug '{$slug_municipio}' redirecionado para '{$slug_correto}'");
+                    
+                    return $municipio;
+                }
+                $stmt_fallback->close();
+            }
+        }
+        
+        return false;
         
     } catch (Exception $e) {
         error_log("Erro ao buscar município: " . $e->getMessage());
