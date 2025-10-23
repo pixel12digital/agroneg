@@ -1,6 +1,14 @@
 <?php
 // Página de perfil do usuário
 require_once(__DIR__ . '/../config/db.php');
+
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro: Não foi possível conectar ao banco de dados');
+}
 include 'includes/header.php';
 
 // Obter dados do usuário logado

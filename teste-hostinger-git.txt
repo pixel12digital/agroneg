@@ -1,2 +1,0 @@
-Teste de deploy via Git Hostinger - $(date)
-Este arquivo deve aparecer automaticamente via Git da Hostinger!

@@ -1,70 +1,17 @@
 <?php
-// Configurações padrão (fallback se não conseguir conectar ao banco)
+// Configurações padrão (sem tentar conectar ao banco)
 $telefone = '(85) 99999-9999';
 $email = 'contato@agroneg.com.br';
 $whatsapp = '(85) 99999-9999';
 $instagram_url = '';
 $facebook_url = '';
 $tiktok_url = '';
-
-// Detectar caminho base para assets
-$request_uri = $_SERVER['REQUEST_URI'] ?? '';
-$path = parse_url($request_uri, PHP_URL_PATH);
-
-// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
-$base_path = '/';
-
-// Tentar conectar ao banco e buscar configurações (opcional)
-// Se não conseguir conectar, usar valores padrão
-if (file_exists(__DIR__ . '/../config/db.php')) {
-    try {
-        // Verificar se a função existe antes de chamar
-        if (!function_exists('getAgronegConnection')) {
-            require_once(__DIR__ . '/../config/db.php');
-        }
-        
-        $conn = @getAgronegConnection();
-        
-        if ($conn && $conn->ping()) {
-            // Função para buscar configuração
-            function get_config($conn, $chave) {
-                try {
-                    $stmt = $conn->prepare("SELECT valor FROM configuracoes WHERE chave = ? LIMIT 1");
-                    if ($stmt) {
-                        $stmt->bind_param("s", $chave);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        $valor = '';
-                        if ($row = $result->fetch_assoc()) {
-                            $valor = $row['valor'];
-                        }
-                        $stmt->close();
-                        return $valor;
-                    }
-                } catch (Exception $e) {
-                    return '';
-                }
-                return '';
-            }
-            
-            $telefone = get_config($conn, 'telefone') ?: $telefone;
-            $email = get_config($conn, 'email') ?: $email;
-            $whatsapp = get_config($conn, 'whatsapp') ?: $whatsapp;
-            $instagram_url = get_config($conn, 'instagram_url') ?: $instagram_url;
-            $facebook_url = get_config($conn, 'facebook_url') ?: $facebook_url;
-            $tiktok_url = get_config($conn, 'tiktok_url') ?: $tiktok_url;
-        }
-    } catch (Exception $e) {
-        // Usar valores padrão se houver erro na conexão
-        error_log("Erro ao conectar ao banco no footer: " . $e->getMessage());
-    }
-}
 ?>
 <footer id="site-footer">
     <div class="footer-content">
         <!-- Coluna 1: Logo e Descrição -->
         <div class="footer-col">
-            <img src="<?php echo $base_path; ?>assets/img/logo-agroneg.png" alt="AgroNeg" class="footer-logo">
+            <img src="/Agroneg/assets/img/logo-agroneg.png" alt="AgroNeg" class="footer-logo">
             <p class="footer-description">
                 O AgroNeg é a vitrine digital que aproxima produtores, criadores, veterinários e cooperativas do Nordeste dos seus clientes. Uma plataforma única, fácil de usar e sempre atualizada.
             </p>
@@ -177,4 +124,4 @@ if (file_exists(__DIR__ . '/../config/db.php')) {
     <div class="footer-bottom">
         <p class="copyright">© <?php echo date('Y'); ?> AgroNeg. Todos os direitos reservados. Criado por <a href="https://pixel12digital.com" target="_blank">Pixel12Digital</a></p>
     </div>
-</footer> 
+</footer>

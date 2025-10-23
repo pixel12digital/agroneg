@@ -5,6 +5,13 @@ require_once("config/db.php");
 // Obter conexão com banco de dados
 $conn = getAgronegConnection();
 
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
+
 // Verificar se foi passado o slug do parceiro
 $slug = isset($_GET['slug']) ? $_GET['slug'] : null;
 
@@ -68,10 +75,10 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $titulo_pagina; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
-    <link rel="stylesheet" href="assets/css/parceiro.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/parceiro.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -214,9 +221,9 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                     <!-- Coluna esquerda: Imagem de destaque -->
                     <div class="parceiro-perfil-img" style="flex: 1 1 350px; max-width: 50%; min-width: 300px; display: flex; flex-direction: column; align-items: center;">
                         <?php if (!empty($parceiro['imagem_destaque'])): ?>
-                            <img src="uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
+                            <img src="<?php echo $base_path; ?>uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
                         <?php else: ?>
-                            <img src="assets/img/placeholder.jpg" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
+                            <img src="<?php echo $base_path; ?>assets/img/placeholder.jpg" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
                         <?php endif; ?>
                         <!-- Aviso abaixo da imagem -->
                         <div class="parceiro-aviso" style="font-size:0.98em; color:#555; background:#fffbe7; border-left:4px solid #ff9800; padding:8px 14px; border-radius:8px; box-shadow:0 1px 4px #0001; margin-top:10px; margin-bottom:0; width:100%; max-width:400px;">
@@ -322,11 +329,11 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                                     $fotos as $i => $foto): ?>
                                     <div class="foto-thumb" style="width: 84px; height: 84px; border-radius: 8px; overflow: hidden; box-shadow:0 1px 6px #0001; cursor:pointer; position:relative; background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
                                         <img 
-                                            src="uploads/parceiros/<?php echo $foto['arquivo']; ?>" 
+                                            src="<?php echo $base_path; ?>uploads/parceiros/<?php echo $foto['arquivo']; ?>" 
                                             alt="<?php echo $foto['legenda'] ?? $parceiro['nome']; ?>" 
                                             class="foto-thumb-img"
                                             style="width: 100%; height: 100%; object-fit: contain; background: #f5f5f5; border-radius: 0; transition: transform 0.2s; display: block;"
-                                            onclick="abrirModalGaleria('uploads/parceiros/<?php echo $foto['arquivo']; ?>', '<?php echo htmlspecialchars($foto['legenda'] ?? $parceiro['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)"
+                                            onclick="abrirModalGaleria('<?php echo $base_path; ?>uploads/parceiros/<?php echo $foto['arquivo']; ?>', '<?php echo htmlspecialchars($foto['legenda'] ?? $parceiro['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)"
                                             onmouseover="this.style.transform='scale(1.07)';"
                                             onmouseout="this.style.transform='scale(1)';"
                                         >
@@ -443,6 +450,6 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
     
     <?php include __DIR__.'/partials/footer.php'; ?>
     
-    <script src="assets/js/header.js"></script>
+    <script src="<?php echo $base_path; ?>assets/js/header.js"></script>
 </body>
 </html> 

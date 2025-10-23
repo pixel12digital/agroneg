@@ -41,6 +41,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 // Página de gerenciamento de parceiros
 require_once(__DIR__ . '/../config/db.php');
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro: Não foi possível conectar ao banco de dados');
+}
+
 // Carregar tipos de parceiros antes de qualquer uso
 $tipos_parceiros = [];
 $query = "SELECT id, nome FROM tipos_parceiros ORDER BY nome";

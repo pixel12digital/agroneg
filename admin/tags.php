@@ -1,6 +1,14 @@
 <?php
 require_once(__DIR__ . '/../config/db.php');
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro: Não foi possível conectar ao banco de dados');
+}
+
 // Garantir que todos os outputs sejam em UTF-8
 header('Content-Type: text/html; charset=utf-8');
 

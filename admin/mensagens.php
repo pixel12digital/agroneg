@@ -1,5 +1,13 @@
 <?php
 require_once(__DIR__ . '/../config/db.php');
+
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro: Não foi possível conectar ao banco de dados');
+}
 include 'includes/header.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['nivel'] !== 'admin') {
     header('Location: ../login.php');

@@ -1,2 +1,0 @@
-Teste de deploy via SSH - $(date)
-Este arquivo deve aparecer automaticamente na Hostinger!

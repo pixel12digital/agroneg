@@ -1,5 +1,5 @@
 <?php
-// Incluir arquivo de conexão
+// Incluir arquivo de conexão com banco de dados
 require_once("config/db.php");
 
 // --- DETECTAR URLs AMIGÁVEIS VIA PATH ---
@@ -21,7 +21,7 @@ if (isset($_GET['estado']) && isset($_GET['municipio']) && !isset($_GET['slug_es
     
     if ($estado_id && $municipio_id) {
         require_once("config/db.php");
-        $conn = getAgronegConnection();
+        // Conexão já obtida anteriormente
         
         $query = "
             SELECT m.slug as municipio_slug, e.sigla as estado_sigla
@@ -38,6 +38,8 @@ if (isset($_GET['estado']) && isset($_GET['municipio']) && !isset($_GET['slug_es
         
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
+            
+            // Construir URL amigável
             $nova_url = "/" . strtolower($row['estado_sigla']) . "/" . $row['municipio_slug'];
             
             // Preservar parâmetros adicionais
@@ -60,6 +62,20 @@ if (isset($_GET['estado']) && isset($_GET['municipio']) && !isset($_GET['slug_es
 // Obter conexão com banco de dados
 $conn = getAgronegConnection();
 
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    // Se não conseguir conectar ao banco, mostrar página de erro amigável
+    http_response_code(503);
+    die('
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Serviço Temporariamente Indisponível</h2>
+        <p>O sistema está temporariamente fora do ar devido a limitações de conexão.</p>
+        <p>Tente novamente em alguns minutos.</p>
+        <p><a href="<?php echo $base_path; ?>">Voltar para a página inicial</a></p>
+    </div>
+    ');
+}
+
 // Verificar se está usando slugs ou IDs
 $slug_estado = isset($_GET['slug_estado']) ? $_GET['slug_estado'] : null;
 $slug_municipio = isset($_GET['slug_municipio']) ? $_GET['slug_municipio'] : null;
@@ -71,56 +87,149 @@ $categorias_slug = isset($_GET['categorias']) ? explode(',', $_GET['categorias']
 
 $municipio = null;
 
-// Buscar município por slugs (URLs amigáveis)
+// Buscar município por slugs (URLs amigáveis) - com cache otimizado
 if ($slug_estado && $slug_municipio) {
-    $query_municipio = "
-        SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
-        FROM municipios m
-        JOIN estados e ON m.estado_id = e.id
-        WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
-    ";
-    $stmt_municipio = $conn->prepare($query_municipio);
-    $stmt_municipio->bind_param("ss", $slug_estado, $slug_municipio);
-    $stmt_municipio->execute();
-    $resultado_municipio = $stmt_municipio->get_result();
+    // Log para debug
+    error_log("Municipio.php - Tentando buscar: estado='$slug_estado', municipio='$slug_municipio'");
     
-    if ($resultado_municipio->num_rows > 0) {
-        $municipio = $resultado_municipio->fetch_assoc();
+    $municipio = getMunicipioBySlug($slug_estado, $slug_municipio);
+    
+    if ($municipio) {
         $estado_id = $municipio['estado_id'];
         $municipio_id = $municipio['municipio_id'];
+        error_log("Municipio.php - Município encontrado: ID=$municipio_id, Nome={$municipio['nome']}");
+    } else {
+        error_log("Municipio.php - Município NÃO encontrado para: estado='$slug_estado', municipio='$slug_municipio'");
+        
+        // Fallback: tentar buscar por nome similar
+        // Conexão já obtida anteriormente
+        if ($conn) {
+            $nome_similar = str_replace('-', ' ', $slug_municipio);
+            $nome_similar = ucwords($nome_similar);
+            
+            $query_fallback = "
+                SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
+                FROM municipios m
+                JOIN estados e ON m.estado_id = e.id
+                WHERE LOWER(e.sigla) = LOWER(?) AND m.nome LIKE ?
+            ";
+            
+            $stmt = $conn->prepare($query_fallback);
+            $like_pattern = "%$nome_similar%";
+            $stmt->bind_param("ss", $slug_estado, $like_pattern);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $municipio = $result->fetch_assoc();
+                $estado_id = $municipio['estado_id'];
+                $municipio_id = $municipio['municipio_id'];
+                error_log("Municipio.php - Município encontrado por nome similar: {$municipio['nome']}");
+            }
+            $stmt->close();
+        }
     }
 }
-// Buscar município por IDs (URLs antigas - compatibilidade)
+// Buscar município por IDs (URLs antigas - compatibilidade) - com cache
 elseif ($estado_id && $municipio_id) {
-    $query_municipio = "
-        SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id
-        FROM municipios m
-        JOIN estados e ON m.estado_id = e.id
-        WHERE e.id = ? AND m.id = ?
-    ";
-    $stmt_municipio = $conn->prepare($query_municipio);
-    $stmt_municipio->bind_param("ii", $estado_id, $municipio_id);
-    $stmt_municipio->execute();
-    $resultado_municipio = $stmt_municipio->get_result();
-    
-    if ($resultado_municipio->num_rows > 0) {
-        $municipio = $resultado_municipio->fetch_assoc();
+    if (function_exists('executeQueryWithCache')) {
+        $cache_key = "municipio_by_ids_{$estado_id}_{$municipio_id}";
+        $resultado_municipio = executeQueryWithCache(
+            "SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id FROM municipios m JOIN estados e ON m.estado_id = e.id WHERE e.id = ? AND m.id = ?",
+            [$estado_id, $municipio_id],
+            $cache_key,
+            7200 // 2 horas
+        );
+        
+        if ($resultado_municipio && count($resultado_municipio) > 0) {
+            $municipio = $resultado_municipio[0];
+        }
+    } else {
+        // Fallback sem cache
+        $query = "SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla, e.id as estado_id, m.id as municipio_id FROM municipios m JOIN estados e ON m.estado_id = e.id WHERE e.id = ? AND m.id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ii", $estado_id, $municipio_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $municipio = $result->fetch_assoc();
+        }
+        $stmt->close();
     }
 }
 
-// Se o município não for encontrado, redireciona
+// Se o município não for encontrado, mostrar página de erro mais informativa
 if (!$municipio) {
-    header('Location: index.php');
-    exit;
+    error_log("Municipio.php - Município não encontrado. Redirecionando para home.");
+    
+    // Se temos slugs, mostrar erro mais específico
+    if ($slug_estado && $slug_municipio) {
+        http_response_code(404);
+        echo "
+        <!DOCTYPE html>
+        <html lang='pt-br'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Município não encontrado - AgroNeg</title>
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                .error-container { max-width: 600px; margin: 0 auto; }
+                .error-code { font-size: 72px; color: #ff6b6b; margin: 0; }
+                .error-message { font-size: 24px; color: #333; margin: 20px 0; }
+                .error-details { color: #666; margin: 20px 0; }
+                .btn-home { 
+                    display: inline-block; 
+                    background: #1A9B60; 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 5px; 
+                    margin-top: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class='error-container'>
+                <h1 class='error-code'>404</h1>
+                <h2 class='error-message'>Município não encontrado</h2>
+                <p class='error-details'>
+                    O município <strong>$slug_municipio</strong> no estado <strong>$slug_estado</strong> não foi encontrado em nossa base de dados.
+                </p>
+                <p class='error-details'>
+                    Verifique se o nome está correto ou tente buscar por outro município.
+                </p>
+                <a href='<?php echo $base_path; ?>' class='btn-home'>Voltar para a página inicial</a>
+            </div>
+        </body>
+        </html>
+        ";
+        exit;
+    } else {
+        // Redirecionamento simples para casos sem slugs
+        header('Location: /');
+        exit;
+    }
 }
 
-// Buscar imagens da galeria do município
-$query_galeria = "SELECT arquivo, legenda FROM fotos WHERE entidade_tipo = 'municipio' AND entidade_id = ? ORDER BY ordem, id";
-$stmt_galeria = $conn->prepare($query_galeria);
-$stmt_galeria->bind_param("i", $municipio['id']);
-$stmt_galeria->execute();
-$resultado_galeria = $stmt_galeria->get_result();
-$galeria = $resultado_galeria->fetch_all(MYSQLI_ASSOC);
+// Buscar imagens da galeria do município - com cache
+if (function_exists('executeQueryWithCache')) {
+    $query_galeria = "SELECT arquivo, legenda FROM fotos WHERE entidade_tipo = 'municipio' AND entidade_id = ? ORDER BY ordem, id";
+    $galeria = executeQueryWithCache($query_galeria, [$municipio['id']]) ?: [];
+} else {
+    // Fallback sem cache
+    $query_galeria = "SELECT arquivo, legenda FROM fotos WHERE entidade_tipo = 'municipio' AND entidade_id = ? ORDER BY ordem, id";
+    $stmt = $conn->prepare($query_galeria);
+    $stmt->bind_param("i", $municipio['id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $galeria = [];
+    while ($row = $result->fetch_assoc()) {
+        $galeria[] = $row;
+    }
+    $stmt->close();
+}
 
 // --- Construir consulta para buscar parceiros (carregamento inicial) ---
 $params = [$municipio_id];
@@ -136,18 +245,31 @@ $sql_parceiros = "
     GROUP BY p.id ORDER BY p.destaque DESC, p.nome ASC
 ";
 
-$stmt_parceiros = $conn->prepare($sql_parceiros);
-if ($stmt_parceiros) {
-    $stmt_parceiros->bind_param($types, ...$params);
-    $stmt_parceiros->execute();
-    $resultado_parceiros = $stmt_parceiros->get_result();
-    $parceiros = $resultado_parceiros->fetch_all(MYSQLI_ASSOC);
+// Executar consulta de parceiros com cache
+if (function_exists('executeQueryWithCache')) {
+    $parceiros = executeQueryWithCache($sql_parceiros, $params) ?: [];
 } else {
-    $parceiros = []; // Falha na consulta
+    // Fallback sem cache
+    $stmt = $conn->prepare($sql_parceiros);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $parceiros = [];
+    while ($row = $result->fetch_assoc()) {
+        $parceiros[] = $row;
+    }
+    $stmt->close();
 }
 
 // Título da página
 $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | AgroNeg';
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -155,10 +277,10 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $titulo_pagina; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
-    <link rel="stylesheet" href="assets/css/municipio.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/municipio.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -301,14 +423,14 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
             <div class="container">
                 <!-- Breadcrumb -->
                 <div class="municipio-breadcrumb">
-                    <a href="index.php">Home</a> &gt; 
-                    <a href="index.php">Estados</a> &gt; 
-                    <a href="index.php"><?php echo $municipio['estado_nome']; ?></a> &gt; 
+                    <a href="<?php echo $base_path; ?>">Home</a> &gt; 
+                    <a href="<?php echo $base_path; ?>">Estados</a> &gt; 
+                    <a href="<?php echo $base_path; ?>"><?php echo $municipio['estado_nome']; ?></a> &gt; 
                     <span><?php echo $municipio['nome']; ?></span>
                 </div>
                 <?php if (!empty($municipio['imagem_principal'])): ?>
                 <div class="municipio-imagem">
-                    <img src="uploads/municipios/<?php echo $municipio['imagem_principal']; ?>" alt="<?php echo $municipio['nome']; ?>">
+                    <img src="<?php echo $base_path; ?>uploads/municipios/<?php echo $municipio['imagem_principal']; ?>" alt="<?php echo $municipio['nome']; ?>">
                 </div>
                 <?php endif; ?>
 
@@ -321,7 +443,7 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                         </span>
                     </h3>
                     <div class="filter-categories">
-                        <div class="category-option <?php echo empty($categorias_slug) ? 'active' : ''; ?>" data-value="todos" onclick="window.location.href='/<?php echo strtolower($municipio['estado_sigla']); ?>/<?php echo $municipio['slug']; ?>'">Todos</div>
+                        <div class="category-option <?php echo empty($categorias_slug) ? 'active' : ''; ?>" data-value="todos" onclick="window.location.href='<?php echo $base_path; ?><?php echo strtolower($municipio['estado_sigla']); ?>/<?php echo $municipio['slug']; ?>'">Todos</div>
                         <div class="category-option <?php echo in_array('produtores', $categorias_slug) ? 'active' : ''; ?>" data-value="produtores">Produtores</div>
                         <div class="category-option <?php echo in_array('criadores', $categorias_slug) ? 'active' : ''; ?>" data-value="criadores">Criadores</div>
                         <div class="category-option <?php echo in_array('veterinarios', $categorias_slug) ? 'active' : ''; ?>" data-value="veterinarios">Veterinários</div>
@@ -337,7 +459,7 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                         <?php 
                         $debug_index = 0;
                         foreach ($galeria as $i => $imagem): 
-                            $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
+                            $caminho_imagem = $base_path . "uploads/municipios/galeria/" . $imagem['arquivo'];
                             if (file_exists($caminho_imagem)):
                         ?>
                         <div class="miniatura" style="height: 84px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px #0001; cursor: pointer; position: relative;">
@@ -421,9 +543,9 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                                     <div class="parceiro-card <?php echo $parceiro['destaque'] ? 'destaque' : ''; ?>">
                                         <div class="parceiro-image">
                                             <?php if (!empty($parceiro['imagem_destaque'])): ?>
-                                                <img src="uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>">
+                                                <img src="<?php echo $base_path; ?>uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>">
                                             <?php else: ?>
-                                                <img src="assets/img/placeholder.jpg" alt="<?php echo $parceiro['nome']; ?>">
+                                                <img src="<?php echo $base_path; ?>assets/img/placeholder.jpg" alt="<?php echo $parceiro['nome']; ?>">
                                             <?php endif; ?>
                                             <?php if ($parceiro['destaque']): ?>
                                                 <span class="destaque-badge">Destaque</span>
@@ -435,7 +557,7 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
                                             <?php if (!empty($parceiro['descricao'])): ?>
                                                 <p class="parceiro-descricao"><?php echo substr($parceiro['descricao'], 0, 120); ?>...</p>
                                             <?php endif; ?>
-                                            <a href="parceiro.php?slug=<?php echo $parceiro['slug']; ?>" class="btn-ver-mais">Ver detalhes</a>
+                                            <a href="<?php echo $base_path; ?>parceiro/<?php echo $parceiro['slug']; ?>" class="btn-ver-mais">Ver detalhes</a>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -474,15 +596,15 @@ $titulo_pagina = $municipio['nome'] . ' - ' . $municipio['estado_nome'] . ' | Ag
         </div>
     </div>
     
-    <script src="assets/js/header.js"></script>
-    <script src="assets/js/municipio-filters.js"></script>
+    <script src="<?php echo $base_path; ?>assets/js/header.js"></script>
+    <script src="<?php echo $base_path; ?>assets/js/municipio-filters.js"></script>
     <script>
         console.log('Script da galeria carregado');
         
         // Array das fotos da galeria
         var galeriaFotos = [
         <?php foreach ($galeria as $imagem): 
-            $caminho_imagem = "uploads/municipios/galeria/" . $imagem['arquivo'];
+            $caminho_imagem = $base_path . "uploads/municipios/galeria/" . $imagem['arquivo'];
             if (file_exists($caminho_imagem)):
         ?>
             {

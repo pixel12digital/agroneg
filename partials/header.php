@@ -1,28 +1,35 @@
 <?php
 $current = basename($_SERVER['PHP_SELF']);
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
 ?>
 <header id="site-header">
   <div class="container">
     <div class="logo">
-      <a href="index.php">
-        <img src="assets/img/logo-agroneg.png" alt="AgroNeg">
+      <a href="<?php echo $base_path; ?>">
+        <img src="<?php echo $base_path; ?>assets/img/logo-agroneg.png" alt="AgroNeg">
       </a>
     </div>
     
     <nav class="desktop-nav">
       <ul>
-        <li><a href="index.php" class="<?php echo ($current == 'index.php') ? 'active' : ''; ?>">Home</a></li>
-        <li><a href="produtores.php" class="<?php echo ($current == 'produtores.php') ? 'active' : ''; ?>">Produtores</a></li>
-        <li><a href="criadores.php" class="<?php echo ($current == 'criadores.php') ? 'active' : ''; ?>">Criadores</a></li>
-        <li><a href="veterinarios.php" class="<?php echo ($current == 'veterinarios.php') ? 'active' : ''; ?>">Veterinários</a></li>
-        <li><a href="lojas-agropet.php" class="<?php echo ($current == 'lojas-agropet.php') ? 'active' : ''; ?>">Lojas Agropet</a></li>
-        <li><a href="cooperativas.php" class="<?php echo ($current == 'cooperativas.php') ? 'active' : ''; ?>">Cooperativas</a></li>
-        <li><a href="eventos.php" class="<?php echo ($current == 'eventos.php') ? 'active' : ''; ?>">Eventos</a></li>
+        <li><a href="<?php echo $base_path; ?>" class="<?php echo ($current == 'index.php') ? 'active' : ''; ?>">Home</a></li>
+        <li><a href="<?php echo $base_path; ?>produtores" class="<?php echo ($current == 'produtores.php') ? 'active' : ''; ?>">Produtores</a></li>
+        <li><a href="<?php echo $base_path; ?>criadores" class="<?php echo ($current == 'criadores.php') ? 'active' : ''; ?>">Criadores</a></li>
+        <li><a href="<?php echo $base_path; ?>veterinarios" class="<?php echo ($current == 'veterinarios.php') ? 'active' : ''; ?>">Veterinários</a></li>
+        <li><a href="<?php echo $base_path; ?>lojas-agropet" class="<?php echo ($current == 'lojas-agropet.php') ? 'active' : ''; ?>">Lojas Agropet</a></li>
+        <li><a href="<?php echo $base_path; ?>cooperativas" class="<?php echo ($current == 'cooperativas.php') ? 'active' : ''; ?>">Cooperativas</a></li>
+        <li><a href="<?php echo $base_path; ?>eventos" class="<?php echo ($current == 'eventos.php') ? 'active' : ''; ?>">Eventos</a></li>
       </ul>
     </nav>
     
     <div class="contact-btn-wrapper">
-      <a href="contato.php" class="contact-btn <?php echo ($current == 'contato.php') ? 'active' : ''; ?>">Contato</a>
+      <a href="<?php echo $base_path; ?>contato" class="contact-btn <?php echo ($current == 'contato.php') ? 'active' : ''; ?>">Contato</a>
     </div>
     
     <div class="mobile-menu-toggle">
@@ -38,15 +45,15 @@ $current = basename($_SERVER['PHP_SELF']);
     </button>
     <nav class="mobile-nav">
       <ul>
-        <li><a href="index.php" class="<?php echo ($current == 'index.php') ? 'active' : ''; ?>">Home</a></li>
-        <li><a href="produtores.php" class="<?php echo ($current == 'produtores.php') ? 'active' : ''; ?>">Produtores</a></li>
-        <li><a href="criadores.php" class="<?php echo ($current == 'criadores.php') ? 'active' : ''; ?>">Criadores</a></li>
-        <li><a href="veterinarios.php" class="<?php echo ($current == 'veterinarios.php') ? 'active' : ''; ?>">Veterinários</a></li>
-        <li><a href="lojas-agropet.php" class="<?php echo ($current == 'lojas-agropet.php') ? 'active' : ''; ?>">Lojas Agropet</a></li>
-        <li><a href="cooperativas.php" class="<?php echo ($current == 'cooperativas.php') ? 'active' : ''; ?>">Cooperativas</a></li>
-        <li><a href="eventos.php" class="<?php echo ($current == 'eventos.php') ? 'active' : ''; ?>">Eventos</a></li>
-        <li><a href="contato.php" class="<?php echo ($current == 'contato.php') ? 'active' : ''; ?>">Contato</a></li>
+        <li><a href="<?php echo $base_path; ?>" class="<?php echo ($current == 'index.php') ? 'active' : ''; ?>">Home</a></li>
+        <li><a href="<?php echo $base_path; ?>produtores" class="<?php echo ($current == 'produtores.php') ? 'active' : ''; ?>">Produtores</a></li>
+        <li><a href="<?php echo $base_path; ?>criadores" class="<?php echo ($current == 'criadores.php') ? 'active' : ''; ?>">Criadores</a></li>
+        <li><a href="<?php echo $base_path; ?>veterinarios" class="<?php echo ($current == 'veterinarios.php') ? 'active' : ''; ?>">Veterinários</a></li>
+        <li><a href="<?php echo $base_path; ?>lojas-agropet" class="<?php echo ($current == 'lojas-agropet.php') ? 'active' : ''; ?>">Lojas Agropet</a></li>
+        <li><a href="<?php echo $base_path; ?>cooperativas" class="<?php echo ($current == 'cooperativas.php') ? 'active' : ''; ?>">Cooperativas</a></li>
+        <li><a href="<?php echo $base_path; ?>eventos" class="<?php echo ($current == 'eventos.php') ? 'active' : ''; ?>">Eventos</a></li>
+        <li><a href="<?php echo $base_path; ?>contato" class="<?php echo ($current == 'contato.php') ? 'active' : ''; ?>">Contato</a></li>
       </ul>
     </nav>
   </div>
-</header> 
+</header>

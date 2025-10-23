@@ -320,14 +320,25 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <a class="nav-link <?php echo ($current_page == 'mensagens.php') ? 'active' : ''; ?>" href="mensagens.php">
                         <i class="fas fa-envelope"></i>Mensagens
                         <?php
-                        // Contar mensagens não lidas
-                        $query = "SELECT COUNT(*) as total FROM mensagens_contato WHERE status = 'novo'";
-                        $result = $conn->query($query);
-                        if ($result) {
-                            $row = $result->fetch_assoc();
-                            if ($row && $row['total'] > 0) {
-                                echo '<span class="badge bg-danger ms-1">' . $row['total'] . '</span>';
+                        // Contar mensagens não lidas (COM CACHE - evita conexão desnecessária)
+                        $cache_file = __DIR__ . '/../../cache/mensagens_count.cache';
+                        $cache_time = 300; // 5 minutos
+                        
+                        $count = 0;
+                        if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_time) {
+                            $count = (int)file_get_contents($cache_file);
+                        } else if ($conn) {
+                            $query = "SELECT COUNT(*) as total FROM mensagens_contato WHERE status = 'novo'";
+                            $result = $conn->query($query);
+                            if ($result) {
+                                $row = $result->fetch_assoc();
+                                $count = $row ? (int)$row['total'] : 0;
+                                file_put_contents($cache_file, $count);
                             }
+                        }
+                        
+                        if ($count > 0) {
+                            echo '<span class="badge bg-danger ms-1">' . $count . '</span>';
                         }
                         ?>
                     </a>

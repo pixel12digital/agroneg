@@ -5,6 +5,14 @@ ob_start();
 // Página de gerenciamento de municípios
 require_once(__DIR__ . '/../config/db.php');
 
+// Obter conexão com banco de dados
+$conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    die('Erro: Não foi possível conectar ao banco de dados');
+}
+
 $base_url = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) ? '/Agroneg/' : '/';
 
 // Função para verificar conexão

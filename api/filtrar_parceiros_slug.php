@@ -1,5 +1,5 @@
 <?php
-// API para filtrar parceiros via AJAX
+// API para filtrar parceiros via AJAX usando slugs
 
 // Verificar se APIs estão desabilitadas
 $control_file = __DIR__ . '/../.apis_disabled';
@@ -45,42 +45,113 @@ if (!$conn) {
     exit;
 }
 
-// Validar e obter os IDs numéricos da URL
-$estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
-$municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
+// Validar e obter os slugs da URL
+$slug_estado = isset($_GET['slug_estado']) ? trim($_GET['slug_estado']) : null;
+$slug_municipio = isset($_GET['slug_municipio']) ? trim($_GET['slug_municipio']) : null;
 
 // Obter categorias para filtrar (tipos de parceiros)
 $categorias_slug = isset($_GET['categorias']) ? explode(',', $_GET['categorias']) : [];
 
 // Validar parâmetros
-if (!$estado_id || !$municipio_id) {
+if (!$slug_estado || !$slug_municipio) {
     http_response_code(400);
     echo json_encode(['erro' => 'Parâmetros inválidos']);
     exit;
 }
 
-// Usar cache para buscar município por IDs
-$cache_key = "municipio_by_ids_{$estado_id}_{$municipio_id}";
-$municipio = executeQueryWithCache(
-    "SELECT m.*, e.nome as estado_nome, e.sigla as estado_sigla FROM municipios m JOIN estados e ON m.estado_id = e.id WHERE e.id = ? AND m.id = ?",
-    [$estado_id, $municipio_id],
-    $cache_key,
-    7200 // 2 horas
-);
+// MODO EMERGÊNCIA: Usar APENAS cache estático (SEM BANCO)
+require_once(__DIR__ . '/../config/static_cache.php');
 
-if (!$municipio || empty($municipio)) {
-    http_response_code(404);
-    echo json_encode(['erro' => 'Município não encontrado']);
-    exit;
-}
+$municipio = StaticCache::getMunicipioStatic($slug_estado, $slug_municipio);
+$parceiros = [];
 
-$municipio = $municipio[0]; // Pegar primeiro resultado
-
-// Usar função otimizada para buscar parceiros (com cache)
-$parceiros = getParceirosByMunicipio($municipio_id, $categorias_slug);
-
-if ($parceiros === false) {
-    $parceiros = [];
+if ($municipio) {
+    // MODO OFFLINE: Usar apenas cache estático
+    $parceiros = StaticCache::getParceirosStatic($slug_estado, $slug_municipio, $categorias_slug);
+} else {
+    // SEM CACHE: Fazer consulta direta no banco
+    $query = "
+        SELECT m.id as municipio_id, e.id as estado_id, m.nome as municipio_nome, e.nome as estado_nome
+        FROM municipios m
+        JOIN estados e ON m.estado_id = e.id
+        WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $slug_estado, $slug_municipio);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $estado_id = $row['estado_id'];
+        $municipio_id = $row['municipio_id'];
+        $municipio = [
+            'nome' => $row['municipio_nome'],
+            'estado_nome' => $row['estado_nome'],
+            'estado_sigla' => strtoupper($slug_estado)
+        ];
+        
+        // Construir consulta de parceiros
+        $where_conditions = ["p.status = 1", "p.municipio_id = ?"];
+        $params = [$municipio_id];
+        $types = 'i';
+        
+        // Adicionar filtro de categorias se especificado
+        if (!empty($categorias_slug)) {
+            $slug_mapping = [
+                'produtores' => 'produtores',
+                'criadores' => 'criadores', 
+                'veterinarios' => 'veterinarios',
+                'lojas-agropet' => 'lojas-agropet',
+                'cooperativas' => 'agroneg-cooper'
+            ];
+            
+            $tipo_slugs = [];
+            foreach ($categorias_slug as $categoria) {
+                if (isset($slug_mapping[$categoria])) {
+                    $tipo_slugs[] = $slug_mapping[$categoria];
+                }
+            }
+            
+            if (!empty($tipo_slugs)) {
+                $placeholders = str_repeat('?,', count($tipo_slugs) - 1) . '?';
+                $where_conditions[] = "t.slug IN ($placeholders)";
+                $params = array_merge($params, $tipo_slugs);
+                $types .= str_repeat('s', count($tipo_slugs));
+            }
+        }
+        
+        $sql = "
+            SELECT p.*, GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_parceiro, t.nome as tipo_nome, t.slug as tipo_slug
+            FROM parceiros p
+            LEFT JOIN parceiros_categorias pc ON p.id = pc.parceiro_id
+            LEFT JOIN categorias c ON pc.categoria_id = c.id
+            JOIN tipos_parceiros t ON p.tipo_id = t.id
+            WHERE " . implode(' AND ', $where_conditions) . "
+            GROUP BY p.id
+            ORDER BY p.destaque DESC, p.nome ASC
+        ";
+        
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $parceiros = [];
+            while ($row = $result->fetch_assoc()) {
+                $parceiros[] = $row;
+            }
+        } else {
+            $parceiros = [];
+        }
+    } else {
+        $parceiros = [];
+        $municipio = [
+            'nome' => ucfirst(str_replace('-', ' ', $slug_municipio)),
+            'estado_nome' => ucfirst($slug_estado),
+            'estado_sigla' => strtoupper($slug_estado)
+        ];
+    }
 }
 
 // Gerar HTML dos parceiros
@@ -136,4 +207,5 @@ echo json_encode([
     'total_parceiros' => count($parceiros),
     'filtros_aplicados' => $categorias_slug
 ]);
-?> 
+?>
+

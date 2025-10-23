@@ -1,32 +1,64 @@
 RewriteEngine On
 
-# Redirecionar URLs antigas para novas URLs amigáveis
-# Redirecionar municipio.php?estado=X&municipio=Y para /estado/municipio
-RewriteCond %{QUERY_STRING} ^estado=([0-9]+)&municipio=([0-9]+)$
-RewriteRule ^municipio\.php$ /redirecionar-municipio.php?estado=%1&municipio=%2 [L,QSA]
-
-# URLs amigáveis para municípios: /pb/barra-de-sao-miguel
-RewriteRule ^([a-z]{2})/([a-z0-9-]+)/?$ municipio.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
-
-# URLs amigáveis para parceiros: /parceiro/fazenda-sao-joao
-RewriteRule ^parceiro/([a-z0-9-]+)/?$ parceiro.php?slug=$1 [L,QSA]
-
-# URLs amigáveis para páginas de parceiros por tipo: /produtores/pb/barra-de-sao-miguel
-RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/([a-z]{2})/([a-z0-9-]+)/?$ $1.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
-
-# URLs amigáveis para páginas de parceiros por tipo sem município: /produtores
-RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/?$ $1.php [L,QSA]
-
-# URLs amigáveis para eventos: /eventos/pb/barra-de-sao-miguel
-RewriteRule ^eventos/([a-z]{2})/([a-z0-9-]+)/?$ eventos.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
-
-# URLs amigáveis para eventos sem município: /eventos
-RewriteRule ^eventos/?$ eventos.php [L,QSA]
+# Verificar se mod_rewrite está disponível
+<IfModule mod_rewrite.c>
 
 # Manter arquivos estáticos e APIs funcionando
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Redirecionar para index.php se não for um arquivo ou diretório
-RewriteRule ^(.*)$ index.php [L]
+# Redirecionar URLs antigas para novas URLs amigáveis (301 permanente)
+# Redirecionar ?estado=X&municipio=Y para /estado/municipio
+RewriteCond %{QUERY_STRING} ^estado=([0-9]+)&municipio=([0-9]+)$
+RewriteRule ^$ redirecionar-municipio.php?estado=%1&municipio=%2 [R=301,L,QSA]
+
+# URLs amigáveis para municípios: /pb/barra-de-sao-miguel
+RewriteRule ^([a-z]{2})/([a-z0-9-]+)/?$ municipio.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
+
+# URLs amigáveis para municípios com /Agroneg/: /Agroneg/pb/barra-de-sao-miguel
+RewriteRule ^Agroneg/([a-z]{2})/([a-z0-9-]+)/?$ municipio.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
+
+# Tratar URLs com index.php: /pb/index.php -> redirecionar para home do estado
+RewriteRule ^([a-z]{2})/index\.php/?$ index.php?estado_slug=$1 [L,QSA]
+
+# URLs amigáveis para parceiros: /parceiro/fazenda-sao-joao
+RewriteRule ^parceiro/([a-z0-9-]+)/?$ parceiro.php?slug=$1 [L,QSA]
+
+# URLs amigáveis para parceiros com /Agroneg/: /Agroneg/parceiro/fazenda-sao-joao
+RewriteRule ^Agroneg/parceiro/([a-z0-9-]+)/?$ parceiro.php?slug=$1 [L,QSA]
+
+# URLs amigáveis para páginas de parceiros por tipo: /produtores/pb/barra-de-sao-miguel
+RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/([a-z]{2})/([a-z0-9-]+)/?$ $1.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
+
+# URLs amigáveis para páginas de parceiros por tipo com /Agroneg/: /Agroneg/produtores/pb/barra-de-sao-miguel
+RewriteRule ^Agroneg/(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/([a-z]{2})/([a-z0-9-]+)/?$ $1.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
+
+# URLs amigáveis para páginas de parceiros por tipo sem município: /produtores
+RewriteRule ^(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/?$ $1.php [L,QSA]
+
+# URLs amigáveis para páginas de parceiros por tipo sem município com /Agroneg/: /Agroneg/produtores
+RewriteRule ^Agroneg/(produtores|criadores|veterinarios|lojas-agropet|cooperativas)/?$ $1.php [L,QSA]
+
+# URLs amigáveis para eventos: /eventos/pb/barra-de-sao-miguel
+RewriteRule ^eventos/([a-z]{2})/([a-z0-9-]+)/?$ eventos.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
+
+# URLs amigáveis para eventos com /Agroneg/: /Agroneg/eventos/pb/barra-de-sao-miguel
+RewriteRule ^Agroneg/eventos/([a-z]{2})/([a-z0-9-]+)/?$ eventos.php?slug_estado=$2&slug_municipio=$3 [L,QSA]
+
+# URLs amigáveis para eventos sem município: /eventos
+RewriteRule ^eventos/?$ eventos.php [L,QSA]
+
+# URLs amigáveis para eventos sem município com /Agroneg/: /Agroneg/eventos
+RewriteRule ^Agroneg/eventos/?$ eventos.php [L,QSA]
+
+# Fallback para URLs não reconhecidas
+RewriteRule ^(.*)$ url-handler.php [L]
+
+</IfModule>
+
+# Fallback para servidores sem mod_rewrite
+<IfModule !mod_rewrite.c>
+    # Se mod_rewrite não estiver disponível, usar PHP para redirecionamento
+    ErrorDocument 404 redirecionar-municipio.php
+</IfModule>

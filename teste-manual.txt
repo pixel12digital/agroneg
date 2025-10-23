@@ -1,2 +1,0 @@
-Teste manual de deploy - $(date)
-Se este arquivo aparecer, o deploy automático está funcionando!

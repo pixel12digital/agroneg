@@ -1,4 +1,11 @@
 <?php
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
+?>
 /**
  * Seção de Perfis e Benefícios - Página inicial
  * AgroNeg - Agricultura Conectada
@@ -16,7 +23,7 @@
             <!-- Prefeituras -->
             <div class="profile-card">
                 <div class="profile-icon-wrapper">
-                    <img src="assets/img/icons/location-icon.svg" alt="Ícone Prefeituras" class="profile-icon">
+                    <img src="<?php echo $base_path; ?>assets/img/icons/location-icon.svg" alt="Ícone Prefeituras" class="profile-icon">
                 </div>
                 <h3 class="profile-title">Prefeituras</h3>
                 <ul class="profile-benefits">
@@ -30,7 +37,7 @@
             <!-- Produtores -->
             <div class="profile-card">
                 <div class="profile-icon-wrapper">
-                    <img src="assets/img/icons/tractor-icon.svg" alt="Ícone Produtores" class="profile-icon">
+                    <img src="<?php echo $base_path; ?>assets/img/icons/tractor-icon.svg" alt="Ícone Produtores" class="profile-icon">
                 </div>
                 <h3 class="profile-title">Produtores</h3>
                 <ul class="profile-benefits">
@@ -44,7 +51,7 @@
             <!-- Criadores -->
             <div class="profile-card">
                 <div class="profile-icon-wrapper">
-                    <img src="assets/img/icons/paw-icon.svg" alt="Ícone Criadores" class="profile-icon">
+                    <img src="<?php echo $base_path; ?>assets/img/icons/paw-icon.svg" alt="Ícone Criadores" class="profile-icon">
                 </div>
                 <h3 class="profile-title">Criadores</h3>
                 <ul class="profile-benefits">
@@ -58,7 +65,7 @@
             <!-- Veterinários -->
             <div class="profile-card">
                 <div class="profile-icon-wrapper">
-                    <img src="assets/img/icons/vet-icon.svg" alt="Ícone Veterinários" class="profile-icon">
+                    <img src="<?php echo $base_path; ?>assets/img/icons/vet-icon.svg" alt="Ícone Veterinários" class="profile-icon">
                 </div>
                 <h3 class="profile-title">Veterinários</h3>
                 <ul class="profile-benefits">
@@ -72,7 +79,7 @@
             <!-- Cooperativas -->
             <div class="profile-card">
                 <div class="profile-icon-wrapper">
-                    <img src="assets/img/icons/people-icon.svg" alt="Ícone Cooperativas" class="profile-icon">
+                    <img src="<?php echo $base_path; ?>assets/img/icons/people-icon.svg" alt="Ícone Cooperativas" class="profile-icon">
                 </div>
                 <h3 class="profile-title">Cooperativas</h3>
                 <ul class="profile-benefits">

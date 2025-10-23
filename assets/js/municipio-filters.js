@@ -20,19 +20,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const municipioAtual = urlParams.get('municipio');
     const slugEstado = urlParams.get('slug_estado');
     const slugMunicipio = urlParams.get('slug_municipio');
+
+    // Detectar tipo de URL (slug ou ID) aceitando com ou sem prefixo /Agroneg
+    const pathname = window.location.pathname;
+    const basePrefix = pathname.startsWith('/Agroneg/') ? '/Agroneg' : '';
     
-    // Detectar tipo de URL (slug ou ID)
-    const isSlugUrl = window.location.pathname.includes('/') && !window.location.search.includes('estado=');
+    // Testar diferentes padrões de URL - mais flexível
+    let matchSlug = null;
+    
+    // Padrão 1: /ce/iracema
+    matchSlug = pathname.match(/^\/([a-z]{2})\/([a-z0-9-]+)\/?$/i);
+    
+    // Padrão 2: /Agroneg/ce/iracema
+    if (!matchSlug) {
+        matchSlug = pathname.match(/^\/Agroneg\/([a-z]{2})\/([a-z0-9-]+)\/?$/i);
+    }
+    
+    // Padrão 3: municipio.php?estado=6&municipio=3 (URL antiga)
+    const isOldUrl = pathname.includes('municipio.php') && (estadoAtual || municipioAtual);
+    
+    const isSlugUrl = !!matchSlug;
+
+    // Se for URL amigável, extrair slugs do path
+    let estadoSlug, municipioSlug;
+    if (isSlugUrl) {
+        estadoSlug = matchSlug[1];
+        municipioSlug = matchSlug[2];
+    }
     
     // Função para obter URL base
     function getBaseUrl() {
-        if (isSlugUrl && slugEstado && slugMunicipio) {
-            return `/${slugEstado}/${slugMunicipio}`;
+        if (isSlugUrl && estadoSlug && municipioSlug) {
+            return `${basePrefix}/${estadoSlug}/${municipioSlug}`;
         } else if (estadoAtual && municipioAtual) {
             return `municipio.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
         }
         return '';
     }
+    
+    // Debounce para evitar requisições excessivas
+    let debounceTimer = null;
     
     // Event listener para as categorias
     categorias.forEach(function(categoria) {
@@ -49,8 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Toggle da classe active
             this.classList.toggle('active');
             
-            // Aplicar filtros via AJAX
-            aplicarFiltrosAJAX();
+            // DEBOUNCE: Aguardar 500ms antes de aplicar filtros
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                aplicarFiltrosAJAX();
+            }, 500);
         });
     });
     
@@ -64,7 +94,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Construir URL para a requisição AJAX
-        let url = `api/filtrar_parceiros.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+        let url;
+        
+        if (isSlugUrl && estadoSlug && municipioSlug) {
+            // Para URLs amigáveis, chamar API baseada em slugs respeitando o prefixo base
+            url = `${basePrefix}/api/filtrar_parceiros_slug.php?slug_estado=${estadoSlug}&slug_municipio=${municipioSlug}`;
+        } else if (isOldUrl && estadoAtual && municipioAtual) {
+            // Para URLs antigas com IDs
+            url = `${basePrefix}/api/filtrar_parceiros.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+        } else {
+            // Fallback - tentar detectar automaticamente
+            if (estadoSlug && municipioSlug) {
+                url = `${basePrefix}/api/filtrar_parceiros_slug.php?slug_estado=${estadoSlug}&slug_municipio=${municipioSlug}`;
+            } else {
+                url = `${basePrefix}/api/filtrar_parceiros.php?estado=${estadoAtual}&municipio=${municipioAtual}`;
+            }
+        }
         
         // Adicionar categorias à URL, se houver
         if (categoriasAtivas.length > 0) {
@@ -78,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(url)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Erro na resposta da rede');
+                    throw new Error('Erro na resposta da rede: ' + response.status);
                 }
                 return response.json();
             })

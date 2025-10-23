@@ -13,9 +13,9 @@ if (isset($_GET['sucesso'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contato - AgroNeg</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -202,6 +202,6 @@ if (isset($_GET['sucesso'])) {
     </div>
     
     <?php include __DIR__.'/partials/footer.php'; ?>
-    <script src="assets/js/header.js"></script>
+    <script src="<?php echo $base_path; ?>assets/js/header.js"></script>
 </body>
 </html> 

@@ -23,7 +23,14 @@ if ($slug_estado && $slug_municipio) {
         JOIN estados e ON m.estado_id = e.id
         WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
     ";
-    $stmt = $conn->prepare($query);
+    $stmt = $conn->
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';prepare($query);
     $stmt->bind_param("ss", $slug_estado, $slug_municipio);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -49,11 +56,11 @@ $filtros = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eventos | AgroNeg</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/banner.css">
-    <link rel="stylesheet" href="assets/css/filters.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/banner.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/filters.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -143,7 +150,7 @@ $filtros = [
     <section class="banner-section">
         <div class="container">
             <div class="banner-wrapper">
-                <img src="assets/images/agroneg-campo.jpg" alt="Banner AgroNeg" class="banner-img">
+                <img src="<?php echo $base_path; ?>assets/images/agroneg-campo.jpg" alt="Banner AgroNeg" class="banner-img">
                 <div class="filter-container">
                     <div class="filter-content">
                         <h2 class="filter-title">Encontre Eventos</h2>
@@ -159,7 +166,7 @@ $filtros = [
                                     if ($res_estados) {
                                         while ($estado = $res_estados->fetch_assoc()) {
                                             $selected = ($filtros['estado_id'] == $estado['id']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
+                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" data-slug="' . htmlspecialchars(strtolower($estado['sigla'])) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
                                         }
                                     }
                                     ?>
@@ -230,7 +237,7 @@ $filtros = [
                             if (!empty($ev['imagem'])) {
                                 echo '<img src="' . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
                             } else {
-                                echo '<img src="assets/images/agroneg-campo.jpg" alt="Evento">';
+                                echo '<img src="<?php echo $base_path; ?>assets/images/agroneg-campo.jpg" alt="Evento">';
                             }
                             echo '</div>';
                             echo '<div class="event-info">';

@@ -1,4 +1,11 @@
 <?php
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
+?>
 /**
  * Seção "A Melhor Experiência" - Página inicial
  * AgroNeg - Agricultura Conectada
@@ -23,7 +30,7 @@
             </div>
         </div>
         <div class="about-image">
-            <img src="assets/images/agroneg-campo.jpg" alt="Plantação brasileira ao pôr do sol" class="img-fluid">
+            <img src="<?php echo $base_path; ?>assets/images/agroneg-campo.jpg" alt="Plantação brasileira ao pôr do sol" class="img-fluid">
         </div>
     </div>
 </section> 

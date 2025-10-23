@@ -9,6 +9,13 @@ $conn = getAgronegConnection();
 $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDATE_INT) : null;
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
 $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria']) : null;
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -16,11 +23,11 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Veterinários | AgroNeg</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/banner.css">
-    <link rel="stylesheet" href="assets/css/filters.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/banner.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/filters.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -110,7 +117,7 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
     <section class="banner-section">
         <div class="container">
             <div class="banner-wrapper">
-                <img src="assets/img/banner-inicial.png" alt="Banner AgroNeg" class="banner-img">
+                <img src="<?php echo $base_path; ?>assets/img/banner-inicial.png" alt="Banner AgroNeg" class="banner-img">
                 <div class="filter-container">
                     <div class="filter-content">
                         <h2 class="filter-title">Encontre Veterinários</h2>
@@ -121,12 +128,12 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
                                 <select id="estado" name="estado" class="filter-select" required>
                                     <option value="">Selecione um estado</option>
                                     <?php
-                                    $query_estados = "SELECT DISTINCT e.id, e.nome FROM estados e INNER JOIN municipios m ON e.id = m.estado_id ORDER BY e.nome ASC";
+                                    $query_estados = "SELECT DISTINCT e.id, e.nome, e.sigla FROM estados e INNER JOIN municipios m ON e.id = m.estado_id ORDER BY e.nome ASC";
                                     $resultado_estados = $conn->query($query_estados);
                                     if ($resultado_estados && $resultado_estados->num_rows > 0) {
                                         while ($estado = $resultado_estados->fetch_assoc()) {
                                             $selected = ($estado_id == $estado['id']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
+                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" data-slug="' . htmlspecialchars(strtolower($estado['sigla'])) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
                                         }
                                     }
                                     ?>
@@ -206,9 +213,9 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
                                 echo '<div class="parceiro-card ' . ($parceiro['destaque'] ? 'destaque' : '') . '">';
                                 echo '<div class="parceiro-image">';
                                 if (!empty($parceiro['imagem_destaque'])) {
-                                    echo '<img src="uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+                                    echo '<img src="<?php echo $base_path; ?>uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 } else {
-                                    echo '<img src="assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+                                    echo '<img src="<?php echo $base_path; ?>assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 }
                                 if ($parceiro['destaque']) {
                                     echo '<span class="destaque-badge">Destaque</span>';
@@ -239,7 +246,7 @@ $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria'
     </section>
 </div>
 <?php include __DIR__.'/partials/footer.php'; ?>
-<script src="assets/js/header.js"></script>
-<script src="assets/js/filters.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/header.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/filters.js"></script>
 </body>
 </html> 

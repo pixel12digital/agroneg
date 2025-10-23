@@ -1,0 +1,7 @@
+RewriteEngine On
+
+# Teste simples - redirecionar qualquer URL para municipio.php
+RewriteRule ^([a-z]{2})/([a-z0-9-]+)/?$ municipio.php?slug_estado=$1&slug_municipio=$2 [L,QSA]
+
+# Fallback - se não conseguir processar, mostrar erro
+RewriteRule ^(.*)$ municipio.php [L]

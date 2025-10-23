@@ -37,6 +37,13 @@ if ($slug_estado && $slug_municipio) {
         exit;
     }
 }
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -44,11 +51,11 @@ if ($slug_estado && $slug_municipio) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cooperativas | AgroNeg</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/banner.css">
-    <link rel="stylesheet" href="assets/css/filters.css">
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/header.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/banner.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/filters.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -138,7 +145,7 @@ if ($slug_estado && $slug_municipio) {
     <section class="banner-section">
         <div class="container">
             <div class="banner-wrapper">
-                <img src="assets/img/banner-inicial.png" alt="Banner AgroNeg" class="banner-img">
+                <img src="<?php echo $base_path; ?>assets/img/banner-inicial.png" alt="Banner AgroNeg" class="banner-img">
                 <div class="filter-container">
                     <div class="filter-content">
                         <h2 class="filter-title">Encontre Cooperativas</h2>
@@ -149,12 +156,12 @@ if ($slug_estado && $slug_municipio) {
                                 <select id="estado" name="estado" class="filter-select" required>
                                     <option value="">Selecione um estado</option>
                                     <?php
-                                    $query_estados = "SELECT DISTINCT e.id, e.nome FROM estados e INNER JOIN municipios m ON e.id = m.estado_id ORDER BY e.nome ASC";
+                                    $query_estados = "SELECT DISTINCT e.id, e.nome, e.sigla FROM estados e INNER JOIN municipios m ON e.id = m.estado_id ORDER BY e.nome ASC";
                                     $resultado_estados = $conn->query($query_estados);
                                     if ($resultado_estados && $resultado_estados->num_rows > 0) {
                                         while ($estado = $resultado_estados->fetch_assoc()) {
                                             $selected = ($estado_id == $estado['id']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
+                                            echo '<option value="' . htmlspecialchars($estado['id']) . '" data-slug="' . htmlspecialchars(strtolower($estado['sigla'])) . '" ' . $selected . '>' . htmlspecialchars($estado['nome']) . '</option>';
                                         }
                                     }
                                     ?>
@@ -224,9 +231,9 @@ if ($slug_estado && $slug_municipio) {
                                 echo '<div class="parceiro-card ' . ($parceiro['destaque'] ? 'destaque' : '') . '">';
                                 echo '<div class="parceiro-image">';
                                 if (!empty($parceiro['imagem_destaque'])) {
-                                    echo '<img src="uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+                                    echo '<img src="<?php echo $base_path; ?>uploads/parceiros/destaque/' . htmlspecialchars($parceiro['imagem_destaque']) . '" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 } else {
-                                    echo '<img src="assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
+                                    echo '<img src="<?php echo $base_path; ?>assets/img/placeholder.jpg" alt="' . htmlspecialchars($parceiro['nome']) . '">';
                                 }
                                 if ($parceiro['destaque']) {
                                     echo '<span class="destaque-badge">Destaque</span>';
@@ -257,7 +264,7 @@ if ($slug_estado && $slug_municipio) {
     </section>
 </div>
 <?php include __DIR__.'/partials/footer.php'; ?>
-<script src="assets/js/header.js"></script>
-<script src="assets/js/filters.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/header.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/filters.js"></script>
 </body>
 </html> 

@@ -1,2 +1,0 @@
-Teste simples - se este arquivo aparecer, o FTP está funcionando!
-Data: $(date)
