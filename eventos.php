@@ -1,12 +1,25 @@
 <?php
-ini_set('display_errors', 1); // Ativar exibição de erros temporariamente
-ini_set('display_startup_errors', 1);
-ini_set('log_errors', 1); // Ativar log de erros em produção
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 error_reporting(E_ALL);
 require_once("config/db.php");
 
 // Obter conexão com banco de dados
 $conn = getAgronegConnection();
+
+// Verificar se a conexão foi estabelecida
+if (!$conn) {
+    // Se não conseguir conectar ao banco, mostrar página de erro amigável
+    http_response_code(503);
+    die('
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Serviço Temporariamente Indisponível</h2>
+        <p>O sistema está temporariamente fora do ar devido a limitações de conexão.</p>
+        <p>Tente novamente em alguns minutos.</p>
+        <p><a href="/">Voltar para a página inicial</a></p>
+    </div>
+    ');
+}
 
 // --- Lógica de Filtros ---
 // Verificar se está usando slugs ou IDs
@@ -23,14 +36,7 @@ if ($slug_estado && $slug_municipio) {
         JOIN estados e ON m.estado_id = e.id
         WHERE LOWER(e.sigla) = LOWER(?) AND m.slug = ?
     ";
-    $stmt = $conn->
-
-// Detectar caminho base para assets
-$request_uri = $_SERVER['REQUEST_URI'] ?? '';
-$path = parse_url($request_uri, PHP_URL_PATH);
-
-// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
-$base_path = '/';prepare($query);
+    $stmt = $conn->prepare($query);
     $stmt->bind_param("ss", $slug_estado, $slug_municipio);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -41,8 +47,18 @@ $base_path = '/';prepare($query);
         $municipio_id = $row['municipio_id'];
         $municipio_nome = $row['municipio_nome'];
         $estado_nome = $row['estado_nome'];
+    } else {
+        header('Location: index.php');
+        exit;
     }
 }
+
+// Detectar caminho base para assets
+$request_uri = $_SERVER['REQUEST_URI'] ?? '';
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
+$base_path = '/';
 
 $filtros = [
     'estado_id' => $estado_id,
@@ -161,7 +177,7 @@ $filtros = [
                                 <select id="estado_id" name="estado_id" class="filter-select">
                                     <option value="">Todos os estados</option>
                                     <?php
-                                    $q_estados = "SELECT DISTINCT e.id, e.nome FROM estados e INNER JOIN eventos_municipio ev ON e.id = ev.estado_id ORDER BY e.nome ASC";
+                                    $q_estados = "SELECT DISTINCT e.id, e.nome, e.sigla FROM estados e INNER JOIN eventos_municipio ev ON e.id = ev.estado_id ORDER BY e.nome ASC";
                                     $res_estados = $conn->query($q_estados);
                                     if ($res_estados) {
                                         while ($estado = $res_estados->fetch_assoc()) {
@@ -235,9 +251,9 @@ $filtros = [
                             echo '<div class="event-card">';
                             echo '<div class="event-image">';
                             if (!empty($ev['imagem'])) {
-                                echo '<img src="' . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
+                                echo '<img src="' . $base_path . 'uploads/eventos/' . htmlspecialchars($ev['imagem']) . '" alt="Imagem do Evento">';
                             } else {
-                                echo '<img src="<?php echo $base_path; ?>assets/images/agroneg-campo.jpg" alt="Evento">';
+                                echo '<img src="' . $base_path . 'assets/images/agroneg-campo.jpg" alt="Evento">';
                             }
                             echo '</div>';
                             echo '<div class="event-info">';
