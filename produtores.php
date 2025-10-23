@@ -20,6 +20,13 @@ $estado_id = isset($_GET['estado']) ? filter_var($_GET['estado'], FILTER_VALIDAT
 $municipio_id = isset($_GET['municipio']) ? filter_var($_GET['municipio'], FILTER_VALIDATE_INT) : null;
 $categoria_slug = isset($_GET['categoria']) ? htmlspecialchars($_GET['categoria']) : null;
 
+// Processar busca via POST (formulário de busca)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $estado_id = isset($_POST['estado']) ? filter_var($_POST['estado'], FILTER_VALIDATE_INT) : null;
+    $municipio_id = isset($_POST['municipio']) ? filter_var($_POST['municipio'], FILTER_VALIDATE_INT) : null;
+    $categoria_slug = isset($_POST['categoria']) ? htmlspecialchars($_POST['categoria']) : null;
+}
+
 // Se está usando slugs, converter para IDs
 if ($slug_estado && $slug_municipio) {
     $query = "
@@ -150,7 +157,7 @@ if ($slug_estado && $slug_municipio) {
                     <div class="filter-content">
                         <h2 class="filter-title">Encontre Produtores</h2>
                         <p class="filter-subtitle">Selecione seu estado, município e categoria para começar</p>
-                        <form class="filter-form" method="get" action="">
+                        <form class="filter-form" method="post" action="">
                             <div class="filter-row">
                                 <label for="estado" class="filter-label">Estado</label>
                                 <select id="estado" name="estado" class="filter-select" required>
@@ -191,6 +198,7 @@ if ($slug_estado && $slug_municipio) {
                                 </select>
                             </div>
                             <div class="filter-row button-row">
+                                <input type="hidden" id="categoria-hidden" name="categoria" value="">
                                 <button type="submit" class="filter-button" id="buscar-btn">Buscar</button>
                             </div>
                         </form>
@@ -219,6 +227,13 @@ if ($slug_estado && $slug_municipio) {
                     $where = ["p.status = 1", "p.municipio_id = ?", "t.slug = 'produtores'"];
                     $params = [$municipio_id];
                     $types = 'i';
+                    
+                    // Adicionar filtro por categoria se especificado
+                    if ($categoria_slug) {
+                        $where[] = "c.slug = ?";
+                        $params[] = $categoria_slug;
+                        $types .= 's';
+                    }
 
                     $sql = "SELECT p.*, m.nome as municipio, e.sigla as estado, GROUP_CONCAT(DISTINCT c.nome SEPARATOR ', ') as categorias_parceiro, t.nome as tipo_nome, t.slug as tipo_slug
                             FROM parceiros p
@@ -276,5 +291,37 @@ if ($slug_estado && $slug_municipio) {
 <?php include __DIR__.'/partials/footer.php'; ?>
 <script src="<?php echo $base_path; ?>assets/js/header.js"></script>
 <script src="<?php echo $base_path; ?>assets/js/filters.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Atualizar campo hidden quando categoria é selecionada
+    const categoriaOptions = document.querySelectorAll('.category-option');
+    const categoriaHidden = document.getElementById('categoria-hidden');
+    
+    categoriaOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remover classe active de todas as opções
+            categoriaOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Adicionar classe active à opção clicada
+            this.classList.add('active');
+            
+            // Atualizar campo hidden
+            categoriaHidden.value = this.dataset.value || '';
+        });
+    });
+    
+    // Preencher categoria selecionada se houver
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoriaParam = urlParams.get('categoria');
+    if (categoriaParam) {
+        categoriaHidden.value = categoriaParam;
+        categoriaOptions.forEach(option => {
+            if (option.dataset.value === categoriaParam) {
+                option.classList.add('active');
+            }
+        });
+    }
+});
+</script>
 </body>
 </html> 
