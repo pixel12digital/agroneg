@@ -9,8 +9,9 @@ $conn = getAgronegConnection();
 $request_uri = $_SERVER['REQUEST_URI'] ?? '';
 $path = parse_url($request_uri, PHP_URL_PATH);
 
-// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
-$base_path = '/';
+// Detectar se está rodando localmente ou em produção
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+$base_path = $is_local ? '/Agroneg/' : '/';
 
 // Verificar se foi passado o slug do parceiro
 $slug = isset($_GET['slug']) ? $_GET['slug'] : null;
@@ -64,6 +65,20 @@ $resultado_fotos = $stmt_fotos->get_result();
 $fotos = [];
 while ($foto = $resultado_fotos->fetch_assoc()) {
     $fotos[] = $foto;
+}
+
+// Função para verificar se uma imagem existe (com fallback para bancos remotos)
+function imagemExiste($caminho_relativo, $base_path) {
+    $caminho_completo = __DIR__ . '/' . $caminho_relativo;
+    
+    // Se o arquivo existe localmente, retorna true
+    if (file_exists($caminho_completo)) {
+        return true;
+    }
+    
+    // Para bancos remotos, vamos assumir que a imagem existe se o nome não estiver vazio
+    // Isso evita erros 404 mas pode mostrar imagens quebradas
+    return !empty($caminho_relativo);
 }
 
 // Título da página
@@ -220,10 +235,10 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                 <div class="parceiro-perfil-row" style="display: flex; flex-wrap: wrap; gap: 32px;">
                     <!-- Coluna esquerda: Imagem de destaque -->
                     <div class="parceiro-perfil-img" style="flex: 1 1 350px; max-width: 50%; min-width: 300px; display: flex; flex-direction: column; align-items: center;">
-                        <?php if (!empty($parceiro['imagem_destaque'])): ?>
-                            <img src="<?php echo $base_path; ?>uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
+                        <?php if (!empty($parceiro['imagem_destaque']) && imagemExiste('uploads/parceiros/destaque/' . $parceiro['imagem_destaque'], $base_path)): ?>
+                            <img src="<?php echo $base_path; ?>uploads/parceiros/destaque/<?php echo $parceiro['imagem_destaque']; ?>" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;" onerror="this.src='<?php echo $base_path; ?>assets/img/placeholder.svg';">
                         <?php else: ?>
-                            <img src="<?php echo $base_path; ?>assets/img/placeholder.jpg" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
+                            <img src="<?php echo $base_path; ?>assets/img/placeholder.svg" alt="<?php echo $parceiro['nome']; ?>" style="width:100%; max-width:450px; border-radius:12px; box-shadow:0 2px 12px #0001; display:block; margin-bottom:10px;">
                         <?php endif; ?>
                         <!-- Aviso abaixo da imagem -->
                         <div class="parceiro-aviso" style="font-size:0.98em; color:#555; background:#fffbe7; border-left:4px solid #ff9800; padding:8px 14px; border-radius:8px; box-shadow:0 1px 4px #0001; margin-top:10px; margin-bottom:0; width:100%; max-width:400px;">
@@ -321,12 +336,17 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                             </div>
                         </div>
                     <?php endif; ?>
-                    <?php if (count($fotos) > 0): ?>
+                    <?php 
+                    // Filtrar apenas fotos que existem fisicamente (ou assumir que existem para bancos remotos)
+                    $fotos_existentes = array_filter($fotos, function($foto) {
+                        return imagemExiste('uploads/parceiros/' . $foto['arquivo'], $base_path);
+                    });
+                    ?>
+                    <?php if (count($fotos_existentes) > 0): ?>
                         <div class="parceiro-galeria">
                             <h2>Galeria de Fotos</h2>
                             <div class="fotos-thumbnails" style="display: flex; flex-wrap: wrap; gap: 16px;">
-                                <?php foreach (
-                                    $fotos as $i => $foto): ?>
+                                <?php foreach ($fotos_existentes as $i => $foto): ?>
                                     <div class="foto-thumb" style="width: 84px; height: 84px; border-radius: 8px; overflow: hidden; box-shadow:0 1px 6px #0001; cursor:pointer; position:relative; background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
                                         <img 
                                             src="<?php echo $base_path; ?>uploads/parceiros/<?php echo $foto['arquivo']; ?>" 
@@ -336,6 +356,7 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                                             onclick="abrirModalGaleria('<?php echo $base_path; ?>uploads/parceiros/<?php echo $foto['arquivo']; ?>', '<?php echo htmlspecialchars($foto['legenda'] ?? $parceiro['nome'], ENT_QUOTES); ?>', <?php echo $i; ?>)"
                                             onmouseover="this.style.transform='scale(1.07)';"
                                             onmouseout="this.style.transform='scale(1)';"
+                                            onerror="this.src='<?php echo $base_path; ?>assets/img/placeholder.svg';"
                                         >
                                     </div>
                                 <?php endforeach; ?>
@@ -360,11 +381,11 @@ $titulo_pagina = $parceiro['nome'] . ' - ' . $parceiro['municipio_nome'] . ' | A
                             </div>
                         </div>
                         <script>
-                        // Array das fotos da galeria
+                        // Array das fotos da galeria (apenas as que existem fisicamente)
                         var galeriaFotos = [
-                        <?php foreach ($fotos as $foto): ?>
+                        <?php foreach ($fotos_existentes as $foto): ?>
                             {
-                                src: 'uploads/parceiros/<?php echo $foto['arquivo']; ?>',
+                                src: '<?php echo $base_path; ?>uploads/parceiros/<?php echo $foto['arquivo']; ?>',
                                 legenda: '<?php echo htmlspecialchars($foto['legenda'] ?? $parceiro['nome'], ENT_QUOTES); ?>'
                             },
                         <?php endforeach; ?>

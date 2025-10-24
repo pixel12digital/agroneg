@@ -10,8 +10,9 @@ $conn = getAgronegConnection();
 $request_uri = $_SERVER['REQUEST_URI'] ?? '';
 $path = parse_url($request_uri, PHP_URL_PATH);
 
-// Sempre usar caminho absoluto para evitar problemas com servidor PHP built-in
-$base_path = '/';
+// Detectar se está rodando localmente ou em produção
+$is_local = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+$base_path = $is_local ? '/Agroneg/' : '/';
 
 // Verificar se está usando slugs ou IDs
 $slug_estado = isset($_GET['slug_estado']) ? $_GET['slug_estado'] : null;
